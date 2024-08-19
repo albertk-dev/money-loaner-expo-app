@@ -1,0 +1,1 @@
+export const CODE_PIN_MAX_LENGTH = 4
