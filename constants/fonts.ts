@@ -51,7 +51,7 @@ const textPlaceholder = {
 
 };
 
-const APP_FONTS = {
+const fonts = {
     header,
     title,
     subtitle,
@@ -61,5 +61,5 @@ const APP_FONTS = {
     textPlaceholder,
 };
 
-export default APP_FONTS;
+export default fonts;
 

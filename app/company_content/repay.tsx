@@ -1,0 +1,221 @@
+/* eslint-disable prettier/prettier */
+import { View, Text,  TouchableOpacity, Dimensions, Animated, StyleSheet, TouchableWithoutFeedback, TextStyle, Alert, Image, ViewStyle, ScrollView, BackHandler, TextInputProps, FlatList, KeyboardTypeOptions, ActivityIndicator, Modal, TextInput } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+
+import Links from '../../components/Links';
+import { authActions } from '../../redux/auth/auth.slice';
+import OperatorLogo from '../../components/OperatorLogo';
+import { getOperator } from '../../helpers/mobileOperator';
+import { cameroonPhoneRegex } from '../../constants/regExp';
+import { KeyboardAccessoryView } from 'react-native-keyboard-accessory';
+import { ICompany,ILoan } from 'money-loaner-api-types';
+import { useSelector } from '../../hooks/useSelector';
+import { useDispatch } from 'react-redux';
+import APP_IMAGES from '../../constants/images';
+import fonts from '../../constants/fonts';
+import Color from 'color';
+import { SvgProps } from 'react-native-svg';
+import CustomAlert from '../../components/CustomAlert';
+import { MoreMenuItem } from '../../components/List/MoreMenu';
+import DropdownMenu from '../../components/DropDownMenu';
+import LoanList from '../../components/List/loanList';
+import LoanDetails from '../../components/LoanDetails';
+import { loanActions } from '../../redux/loan/loan.slice';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+
+import CommonStyle from '../../styles/common';
+
+import { useAppThemeColor } from '@/hooks/useThemeColor';
+import { router } from 'expo-router';
+import { IAppColors } from '@/constants/Colors';
+
+
+const style = CommonStyle;
+
+const { width, height } = Dimensions.get('window');
+
+const getPercentage = (percent: number, max: number) => {
+  return Math.round(percent/100*max)
+}
+
+const Company_RepayLoanScreen= () => {
+
+    const colors = useAppThemeColor()
+    const style = CommonStyle(colors);
+    const modalStyles = createModalStyles(colors)
+
+  const dispatch = useDispatch()
+  const company = useSelector(state => state.company.companyInfos);
+  const canDoLoan = useSelector(state => state.loan.employeeCanDoLoan);
+  const loansParams = useSelector(state => state.employee.employeeInfos?.companyId.loanParameters)
+  const loanLoading = useSelector(state => state.loan.loading);
+  const loanRepaySuccess = useSelector(state => state.loan.repayLoanSuccess);
+  const errorRepayLoan = useSelector(state => state.loan.error);
+  const [account, setAccount] = useState(company?.phoneNumber);
+  const [tempAccount, setTemplAccount] = useState(company?.phoneNumber);
+  const [errorAccount, setErrorAccount] = useState('');
+ 
+  const repayMode = useSelector(state => state.loan.repayMode);
+  const selectedLoansToRepay = useSelector(state => state.loan.selectedLoansToRepay)
+  const oneLoansToRepay = useSelector(state => state.loan.oneLoanToRepay)
+
+  const [showAccountModifier, setShowAccountModifier] = useState(false)
+  
+
+  const handleRepayLoan = ()=> {
+    if (repayMode === 'one') {
+      
+    }
+  }
+  
+  
+
+  
+  const onChangeAccount = (account:string) => {
+    const operator = getOperator(account.trim());
+    if (!cameroonPhoneRegex.test(account.trim())) {
+      setErrorAccount("ce numéro n'est pas camerounnais")
+    } else if (operator !== 'mtn' && operator !== 'orange') {
+      setErrorAccount("cet opérateur n'est pas supporter")
+      } else {
+      setErrorAccount("")
+      setAccount(account)
+      setShowAccountModifier(false)
+    }
+    
+  }
+
+
+  return (
+    <SafeAreaView style={{...style.page, padding:0,margin:0, paddingVertical:0, paddingHorizontal:0}} >
+      {/* Header */}
+      <View style={{ display: 'flex', flexDirection: 'row', padding: 10, height: 64, justifyContent: 'space-between', gap: 5, alignItems: 'center' }}>
+          <TouchableOpacity onPress={()=>router.back()}>
+                 <APP_IMAGES.ARROW_BACK_ICON width={32} height={32}  fill={colors.primary}/>
+          </TouchableOpacity>
+   
+        <APP_IMAGES.LOGO width={32} height={32}/>  
+      </View>
+
+      <Text style={{...fonts.title, color:colors.primary, width:'100%', textAlign:'center'} as TextStyle}>Rembourssement des prets</Text>
+      {/**Le contenu */}
+      <ScrollView style={{width:'100%'}} contentContainerStyle={[{...style.page,backgroundColor:Color(colors.background).darken(0.02).toString(), borderRadius:8,width:'100%'}, {justifyContent:'flex-start', gap:20}]}>
+   
+     
+      
+        <View style={{justifyContent:'center', alignItems:'center', gap:20, padding:10}}>
+          <Text style={{ ...fonts.bodyHighLight, color: colors.black, textAlign: 'center', width: '100%' } as TextStyle}>Compte de Retrait</Text>
+          <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%'}}>
+            <OperatorLogo phoneNumber={account || company?.phoneNumber!} size={64} />
+            <Text style={{ ...fonts.title } as TextStyle}>{account || company?.phoneNumber! || selectedLoansToRepay[0].company?.phoneNumber}</Text>
+            <TouchableOpacity onPress={()=>setShowAccountModifier(true)}>
+              <APP_IMAGES.EMOJI_PEN height={48} width={48}/>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <Modal
+          visible={showAccountModifier}
+          transparent={true}
+          animationType='slide'
+          onRequestClose={()=>setShowAccountModifier(false)}
+        >
+          <View style={modalStyles.modalBackground}>
+            <View style={modalStyles.modalContainer}>
+            <TouchableOpacity onPress={()=>setShowAccountModifier(false)} style={{width:'100%', justifyContent:'flex-end', alignItems:'flex-start', marginBottom:5}}><APP_IMAGES.ICON_CLOSE_MENU width={32} height={32} fill={Color(colors.black).alpha(0.5).toString()}/></TouchableOpacity>
+              <Text style={modalStyles.title}>Modifier le compte de retrait</Text>
+              <View style={{...modalStyles.scrollView, gap:10,}}>
+                <View style={{width:'100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomColor: colors.black, borderBottomWidth: 1, height:40, gap:10 }}>
+                  <APP_IMAGES.ICON_CAMEROUN_FLAG height={32} width={32} />
+                  <TextInput keyboardType='phone-pad' value={tempAccount} style={{flex:1, padding:0, backgroundColor:colors.white, color:colors.black}} onChangeText={(value)=>setTemplAccount(value)} />
+                </View>
+
+                <View style={style.flexCenter}>
+                <OperatorLogo phoneNumber={tempAccount!} size={64} />
+                </View>
+                {errorAccount && <Text style={{ color: colors.danger }}>{errorAccount}</Text>}
+                <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap:10,marginBottom:20 }}>
+                  <TouchableOpacity onPress={() => {
+                    setTemplAccount(account);
+                    setShowAccountModifier(false)
+                    setErrorAccount('')
+
+                  }} style={{ backgroundColor: colors.white, borderRadius:10, borderColor:colors.primary, borderWidth:1, padding:10}}>
+                    <Text style={{...fonts.title, color:colors.primary} as TextStyle}>Annuler</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={()=>onChangeAccount(tempAccount!)} style={{ backgroundColor: colors.primary, borderRadius:10, borderColor:colors.primary, borderWidth:1, padding:10}}>
+                    <Text style={{...fonts.title, color:colors.white} as TextStyle}>Modifier</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+          </View>
+
+
+          </Modal>
+
+        
+    
+     
+      </ScrollView>
+      <View style={{
+         display: 'flex',
+         flexDirection: 'row',
+         gap: 5, flexWrap: 'wrap',
+         justifyContent: "center", alignItems: 'center', marginBottom: 10
+        }}>
+          <Text style={{ ...fonts.bodymin, color: 'black' } as any} >Veuillez consulter la </Text>
+          <Links.Primary title='politique de confidentialité' onPress={() => Alert.alert('politique de confidentialité...')} />
+          <Text style={{ ...fonts.bodymin, color: 'black' } as any} > et les </Text>
+          <Links.Primary title="conditions d'utilisations" onPress={() => Alert.alert("conditions d'utilisation...")} />
+        </View>
+   
+
+
+
+   
+
+
+    </SafeAreaView>
+  );
+};
+
+
+
+
+const createModalStyles = (colors:IAppColors) =>  StyleSheet.create({
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Color(colors.primary).alpha(0.5).toString(),
+
+  },
+  modalContainer: {
+    width: '80%',
+    maxHeight: '80%',
+    backgroundColor: 'white',
+    borderRadius: 4,
+    padding: 10,
+    paddingBottom:0,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black',
+  },
+  scrollView: {
+    maxHeight: 700,
+    marginBottom: 5,
+  },
+  message: {
+    fontSize: 16,
+    color: 'black',
+  },
+});
+
+export default Company_RepayLoanScreen;
