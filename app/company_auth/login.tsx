@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import {  Image, SafeAreaView, ScrollView, Text, TextStyle, View,  TouchableWithoutFeedback } from 'react-native';
+import {  Image,  ScrollView, Text, TextStyle, View,  TouchableWithoutFeedback } from 'react-native';
 
 
 import { useSelector } from "../../hooks/useSelector";
@@ -16,6 +16,7 @@ import TextFields from '../../components/TextField';
 
 import { useAppThemeColor } from '@/hooks/useThemeColor';
 import { router } from 'expo-router';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 

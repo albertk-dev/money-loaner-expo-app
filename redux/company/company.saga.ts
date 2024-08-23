@@ -1,7 +1,7 @@
 // company.saga.ts
 import { call, put, takeLatest } from 'redux-saga/effects';
 import ML_API from '../../api';
-import { IGetAllEmployeesRequest, IGetAllEmployeesResponse, ILoginCompanyRequestBody, ILoginCompanyResponse, IRegisterEmployeeRequestBody, IRegisterEmployeeResponse, IUpdateCompanyRequest, IUpdateCompanyResponse, IUpdateEmployeeRequest, IUpdateEmployeeResponse } from 'money-loaner-api-types';
+import { IGetAllEmployeesRequest, IGetAllEmployeesResponse, ILoginCompanyRequestBody, ILoginCompanyResponse, IRegisterEmployeeRequestBody, IRegisterEmployeeResponse, IUpdateCompanyRequest, IUpdateCompanyResponse, IUpdateEmployeeRequest, IUpdateEmployeeResponse, IUpdateLoanParametersRequest, IUpdateLoanParametersResponse } from 'money-loaner-api-types';
 import { companyActions } from './company.slice';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { authActions } from '../auth/auth.slice';
@@ -38,6 +38,23 @@ function* update(action: PayloadAction<IUpdateCompanyRequest>) {
             yield put(authActions.setConnectedEntityType("company"));
         } else {
             yield put(companyActions.updatingCompanyFailure( 'impossible de joindre le serveur'));
+        }
+    } catch (error: any) {
+        yield put(companyActions.updatingCompanyFailure(error.message || 'Erreur inconnue'));
+    }
+}
+
+function* updateLoanParameters(action: PayloadAction<IUpdateLoanParametersRequest>) {
+    try {
+      
+        const response: IUpdateLoanParametersResponse = yield call([ML_API, ML_API.updateLoanParameters], action.payload);
+
+        if (response) {
+            yield put(companyActions.updateLoanParamSuccess(response.data));
+            yield put(authActions.setConnectedEntityData(response.data));
+            yield put(authActions.setConnectedEntityType("company"));
+        } else {
+            yield put(companyActions.updateLoanParamFailure( 'impossible de joindre le serveur'));
         }
     } catch (error: any) {
         yield put(companyActions.updatingCompanyFailure(error.message || 'Erreur inconnue'));
@@ -96,4 +113,6 @@ export default function* companySagas() {
     yield takeLatest(companyActions.addEmployeeRequest.type, addEmployee);
     yield takeLatest(companyActions.updateEmployeeRequest.type, updateEmployee);
     yield takeLatest(companyActions.getEmployeesrequest.type, fetchEmployees);
+    yield takeLatest(companyActions.updateLoanParamRequest.type, updateLoanParameters)
 }
+

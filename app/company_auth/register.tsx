@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import React, { useState } from 'react';
-import { SafeAreaView, Text, View, TouchableWithoutFeedback, Keyboard, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text, View, TouchableWithoutFeedback, Keyboard, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { KeyboardAccessoryView } from "react-native-keyboard-accessory";
 import { useForm, Controller } from 'react-hook-form';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +18,7 @@ import {  IRegisterCompanyRequestBody } from 'money-loaner-api-types';
 import ML_API from '../../api';
 import { useAppThemeColor } from '@/hooks/useThemeColor';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 // Assurez-vous d'importer correctement vos types
 
 
@@ -181,9 +182,9 @@ const Company_RegisterCompanyScreen = () => {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1,gap:20 }}>
 
-                <ScrollView contentContainerStyle={{ ...style.page, flex: 0, flexGrow: 1, flexShrink: 0, marginBottom: isOperationInProgress?60:20 }}>
+                <ScrollView contentContainerStyle={{ ...style.page, flex: 0, flexGrow: 1, gap:20, flexShrink: 0, marginBottom: isOperationInProgress?60:20 }}>
 
                     <View style={style.Headerblock}>
                         <APP_IMAGES.LOGO width={48} height={54} />
@@ -220,7 +221,7 @@ const Company_RegisterCompanyScreen = () => {
                         )}
                     />
 
-                    <View style={{ gap: 4, marginBottom: 20 }}>
+                    <View style={{ gap: 20, marginBottom: 20, flex:1, justifyContent:'center' }}>
                         <Controller
                             control={control}
                             name="companyName"
@@ -315,7 +316,7 @@ const Company_RegisterCompanyScreen = () => {
                             {!isKeyboardVisible && (
                                 <View style={{ display: 'flex', flexDirection: 'row', gap: 5 }}>
                                     <Text style={{ ...fonts.bodymin, color: 'black' } as any} >Votre entreprise est déjà enregistrée?</Text>
-                                    <Links.Primary title='Connectez-vous' onPress={() => router.push("/company_auth/login")} />
+                                    <Links.Primary title='Connectez-vous' onPress={() => router.push("/company_auth/")} />
                                 </View>
                             )}
                                        {isOperationInProgress && (

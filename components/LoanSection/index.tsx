@@ -66,9 +66,9 @@ const LoanSection: React.FC<Props> = ({ step, initialValue, disabled, disabledMs
             {disabled && showDisabledMsg &&
                     <View style={styles.disabledMsg}>
                         <View style={{ backgroundColor: 'transparent', height: 100, width:55}}>
-                              <APP_IMAGES.ICON_ALERT height={100} width={80} fill={colors.text}/>
+                              <APP_IMAGES.ICON_ALERT height={100} width={80} fill={colors.white}/>
                         </View>
-                        <Text style={{ flex:1,color:colors.text,}} >{disabledMsg}</Text>
+                        <Text style={{ flex:1,color:colors.white,}} >{disabledMsg}</Text>
 
                     </View>}
             

@@ -24,7 +24,7 @@ const Employee_ChooseCompanyScreen= () => {
 const selectedCompany = useSelector(state=>state.auth.selectedCompany)
 
   return (
-    <SafeAreaView style={style.page}>
+    <View style={style.page}>
       <View style={style.Headerblock}>
         <APP_IMAGES.LOGO width={48} height={54} />
         <Text style={style.HeaderText}>Money Loaner</Text>
@@ -50,7 +50,7 @@ const selectedCompany = useSelector(state=>state.auth.selectedCompany)
         <Text style={{ ...fonts.bodymin, color: 'black' } as any}>Vous ne trouvez pas le vôtre?</Text>
         <Links.Primary title='Invité le chef' onPress={() => Alert.alert('envoyer un email au boss...')} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

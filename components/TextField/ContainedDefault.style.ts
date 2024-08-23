@@ -8,7 +8,8 @@ const ContainedTextStyles = (colors: IAppColors) =>  StyleSheet.create({
     textInput: {
         color: colors.primary,
         ...fonts.bodyHighLight,
-        height:'100%',
+        height:64,
+        padding:5,
         
         flex: 1
     },

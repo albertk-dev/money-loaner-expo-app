@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
 
 import APP_IMAGES from '../constants/images';
 
@@ -10,6 +10,7 @@ import { useAppThemeColor } from '@/hooks/useThemeColor';
 import fonts from '@/constants/fonts';
 import { router } from 'expo-router';
 import Buttons from '@/components/Buttons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const ChooseEntityScreen = () => {
@@ -17,7 +18,7 @@ const ChooseEntityScreen = () => {
     const colors = useAppThemeColor()
     const style = commonStyles(colors)
   return (
-    <SafeAreaView style={style.page}>
+    <View style={style.page}>
       <View style={style.Headerblock}>
         <APP_IMAGES.LOGO width={48} height={54} />
         <Text style={style.HeaderText}>Money Loaner</Text>
@@ -38,7 +39,7 @@ const ChooseEntityScreen = () => {
 
       </View>
 
-    </SafeAreaView>
+    </View>
   );
 };
 

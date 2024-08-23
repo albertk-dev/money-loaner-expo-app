@@ -3,14 +3,9 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Alert,
   SafeAreaView,
-  Image,
-  TextStyle,
 } from 'react-native';
-
-
 
 import Buttons from '../../components/Buttons';
 import CommonStyle from '../../styles/common';
@@ -25,12 +20,12 @@ import { useAppThemeColor } from '@/hooks/useThemeColor';
 
 
 
+
 const Employee_ChangePinScreen = () => {
 
-    
+
     const colors = useAppThemeColor()
     const style = CommonStyle(colors);
-
 
   const [pinCode, setPinCode] = useState('')
   const [keyboardDisabled, setKeyBoardDisabled] = useState(false)
@@ -76,7 +71,7 @@ useEffect(() => {
     <SafeAreaView style={style.page}>
       <View style={style.Headerblock}>
         {/* <APP_IMAGES.LOGO width={48} height={54} /> */}
-        <Text style={style.HeaderText}>Modifier le code Pin</Text>
+        <Text style={{...style.HeaderText,textAlign:'center',fontSize:16}}>Modifier le code Pin</Text>
       </View>
 
 

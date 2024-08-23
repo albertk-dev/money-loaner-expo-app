@@ -131,7 +131,7 @@ const Employee_ProfileScreen = () => {
         startIconProps: { fillOpacity: 0 },
         endIcon: APP_IMAGES.ICON_EDIT_SECRET,
         endIconProps: { width: 32, height: 32, fill: colors.primary, fillOpacity: 1 },
-         handleClicEndIcon: () => router.push("/employee_auth/pincode"),
+         handleClicEndIcon: () => router.push('/employee_content/change_pincode'),
         textInputProps: { autoCapitalize: 'none', autoCorrect: false, secureTextEntry: true },
       
        
@@ -341,7 +341,7 @@ uploadTask.on(
 
 
   return (
-    <SafeAreaView style={{ ...style.page, padding: 5, margin: 0, paddingVertical: 0, paddingHorizontal: 0 }} >
+    <View style={{ ...style.page, padding: 5, margin: 0, paddingVertical: 0, paddingHorizontal: 0 }} >
 
       <View style={[{ flex: 1, padding: 10, margin: 0 }]}>
         <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.background, padding: 5, }}>
@@ -484,7 +484,7 @@ uploadTask.on(
                   style: "cancel"
                 },
                 {
-                  text: "Oui", onPress: () => Alert.alert('Go to', "Logout")
+                  text: "Oui", onPress: () => router.replace("/logout")
                 }
               ]);
 
@@ -513,7 +513,7 @@ uploadTask.on(
 
 
 
-    </SafeAreaView>
+    </View>
   );
 };
 

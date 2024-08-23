@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ICompany, IEmployee, IGetAllEmployeesRequest, ILoginCompanyRequestBody, IRegisterEmployeeRequestBody, IUpdateCompanyRequest, IUpdateEmployeeRequest } from "money-loaner-api-types";
+import { ICompany, IEmployee, IGetAllEmployeesRequest, ILoginCompanyRequestBody, IRegisterEmployeeRequestBody, IUpdateCompanyRequest, IUpdateEmployeeRequest, IUpdateLoanParametersRequest } from "money-loaner-api-types";
 
 
 
@@ -96,7 +96,7 @@ export const companySlice = createSlice({
             state.updateCompanySuccess = false;
             state.errorUpdatingCompany = action.payload;
         },
-        updateLoanParamRequest(state) {
+        updateLoanParamRequest(state, action:PayloadAction<IUpdateLoanParametersRequest>) {
             state.updatingLoanParam = true;
             state.updateLoanParamSuccess = null;
             state.errorUpdatingLoanParam = null;

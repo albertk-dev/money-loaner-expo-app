@@ -8,7 +8,8 @@ import { useSelector } from "@/hooks/useSelector";
 import { useAppThemeColor } from "@/hooks/useThemeColor";
 import commonStyles from "@/styles/common";
 import { router } from "expo-router";
-import { Alert, SafeAreaView, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CompanySelectCompanyScreen()  {
     const selectedCompany = useSelector(state=> state.auth.selectedCompany)

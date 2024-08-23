@@ -9,6 +9,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Provider } from 'react-redux';
 import store, { persistor } from '@/redux/setup/store';
 import { PersistGate } from 'redux-persist/integration/react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -35,7 +36,8 @@ export default function RootLayout() {
     <Provider store={store}>
       <PersistGate persistor={persistor}>
   <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+    <SafeAreaView style={{ flex: 1 }}>
+       <Stack>
         <Stack.Screen options={{headerShown:false}} name="index"/>
         <Stack.Screen options={{headerShown:false}}  name="choose_entity"/>
         <Stack.Screen options={{headerShown:false}}   name='company_auth'/>
@@ -46,6 +48,8 @@ export default function RootLayout() {
         <Stack.Screen options={{headerShown:false}}    name='logout'/>
      
       </Stack>
+    </SafeAreaView >
+     
     </ThemeProvider>
       </PersistGate>
       

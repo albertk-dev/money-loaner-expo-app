@@ -147,20 +147,17 @@ const Company_GestionEmployeeScreen = () => {
   return (
   
     
-    <SafeAreaView style={{ flex: 1, padding: 10 }}>
-        <View style={{ display: 'flex', flexDirection: 'row', padding: 10, height: 64, justifyContent: 'space-between', gap: 5, alignItems: 'center' }}>
-          <View style={{flex:1,borderRadius:50, borderColor:colors.primary, borderWidth:1, paddingLeft:5, justifyContent:'space-between', flexDirection:'row', gap:5, alignItems:'center'}}>
+    <View style={{ flex: 1, padding: 10 }}>
+        <View style={{ display: 'flex', flexDirection: 'row', padding: 10, height: 64, justifyContent: 'space-between', gap: 5,marginTop:0, alignItems: 'center',paddingTop:0 }}>
+          <View style={{flex:1,borderRadius:50, borderColor:colors.primary, borderWidth:1, paddingLeft:10, justifyContent:'space-between', flexDirection:'row', gap:5, alignItems:'center'}}>
             <APP_IMAGES.SEARCH_ICON width={16} height={16} fill={colors.black} fillOpacity={0.5}/>
-            <TextInput placeholderTextColor={Color(colors.primary).alpha(0.3).toString()} placeholder='Rechercher un employé...' style={{ flex: 1,...fonts.bodyHighLight,color:colors.primary }as any} value={search} onChangeText={(text)=>setSearch(text)} />
-      
+            <TextInput placeholderTextColor={Color(colors.primary).alpha(0.3).toString()} placeholder='Rechercher un employé...' style={{ padding:5,flex: 1,...fonts.bodyHighLight,color:colors.primary }as any} value={search} onChangeText={(text)=>setSearch(text)} />
           </View>
-
       </View>
-      <Text style={{...fonts.title, color:colors.primary, width:'100%', textAlign:'center'} as TextStyle}>Gestion des employées</Text>
       <View style={{flexDirection: 'row', padding:10, justifyContent:'space-between', alignItems:'center'}}>
         <DropdownMenu items={sortedByItems} />
         <DropdownMenu items={orderItems} />
-        <TouchableOpacity onPress={()=> Alert.alert("Go to", "Add Employee")} style={{borderRadius: 4, borderWidth:1, borderColor:colors.primary, padding:5}}>
+        <TouchableOpacity onPress={()=> router.push("/company_content/add_employee")} style={{borderRadius: 4, borderWidth:1, borderColor:colors.primary, padding:5}}>
           <APP_IMAGES.ICON_ADD_EMPLOYEE fill={colors.primary} width={32} height={32}/>
         </TouchableOpacity>
         
@@ -202,7 +199,7 @@ const Company_GestionEmployeeScreen = () => {
                         </View>
           )}
           </KeyboardAccessoryView>
-      </SafeAreaView>
+      </View>
 
      
   );

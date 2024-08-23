@@ -21,12 +21,6 @@ import LoanDetails from '../../components/LoanDetails';
 import { loanActions } from '../../redux/loan/loan.slice';
 
 
-
-
-
-
-
-
 const Employee_HistoryScreen = () => {
 
     const colors = useAppThemeColor()
@@ -123,20 +117,18 @@ const Employee_HistoryScreen = () => {
   return (
   
     
-    <SafeAreaView style={{ flex: 1, padding: 10 }}>
-        <View style={{ display: 'flex', flexDirection: 'row', padding: 10, height: 64, justifyContent: 'space-between', gap: 5, alignItems: 'center' }}>
-          <TouchableOpacity onPress={()=>router.back()}>
-                 <APP_IMAGES.ARROW_BACK_ICON width={32} height={32}  fill={colors.primary}/>
-          </TouchableOpacity>
-   
-          <View style={{flex:1,borderRadius:50, borderColor:colors.primary, borderWidth:1, paddingLeft:5, justifyContent:'space-between', flexDirection:'row', gap:5, alignItems:'center'}}>
+    <View style={{ flex: 1, padding: 10,paddingTop:0 }}>
+        <View style={{ display: 'flex', flexDirection: 'row', padding: 5, height: 64, justifyContent: 'space-between', gap: 5, alignItems: 'center' }}>
+         
+          <View style={{flex:1,borderRadius:10,height:48, borderColor:colors.primary, borderWidth:1, paddingLeft:5, justifyContent:'space-between', flexDirection:'row', gap:5, alignItems:'center'}}>
             <APP_IMAGES.SEARCH_ICON width={16} height={16} fill={colors.black} fillOpacity={0.5}/>
             <TextInput placeholderTextColor={Color(colors.primary).alpha(0.3).toString()} placeholder='Rechercher un montant...' style={{ flex: 1,...fonts.bodyHighLight,color:colors.primary }as any} value={search} onChangeText={(text)=>setSearch(text)} />
       
           </View>
-        <APP_IMAGES.LOGO width={32} height={32}/>  
+        
       </View>
-      <Text style={{...fonts.title, color:colors.primary, width:'100%', textAlign:'center'} as TextStyle}>Historique</Text>
+
+
       <View style={{flexDirection: 'row', padding:10, justifyContent:'space-between', alignItems:'center'}}>
         <DropdownMenu items={sortedByItems} />
         <DropdownMenu items={orderItems} />
@@ -183,7 +175,7 @@ const Employee_HistoryScreen = () => {
                         </View>
           )}
           </KeyboardAccessoryView>
-      </SafeAreaView>
+      </View>
 
      
   );

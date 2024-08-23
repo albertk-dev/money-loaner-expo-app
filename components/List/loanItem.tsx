@@ -14,7 +14,7 @@ import { useAppThemeColor } from '@/hooks/useThemeColor';
 
 type LoanItemProps = {
   loan: ILoan;
- onRepay:()=>void,
+ onRepay:(loan:ILoan)=>void,
     menuItems: MoreMenuItem<ILoan>[];
   entityType: 'employee' | 'company';
   readyToSelect?: boolean;
@@ -50,9 +50,7 @@ const LoanItem: React.FC<LoanItemProps> = ({ loan,menuItems, entityType,  readyT
     ...(!loan.refunded? [{
       text: 'Rembousser',
       onClick: (data:ILoan)=>{
-        dispatch(loanActions.setRepayMode("one"))
-        dispatch(loanActions.setOneLoanToRepay(data))
-        onRepay()
+        onRepay(data)
       },
       available:true,
     }] : [])

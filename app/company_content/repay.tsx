@@ -27,7 +27,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CommonStyle from '../../styles/common';
 
 import { useAppThemeColor } from '@/hooks/useThemeColor';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { IAppColors } from '@/constants/Colors';
 
 
@@ -39,38 +39,32 @@ const getPercentage = (percent: number, max: number) => {
   return Math.round(percent/100*max)
 }
 
+interface IRepayData {
+  loans: ILoan[],
+  company: ICompany,
+}
+
 const Company_RepayLoanScreen= () => {
 
     const colors = useAppThemeColor()
     const style = CommonStyle(colors);
     const modalStyles = createModalStyles(colors)
+     
+  const {data} = useLocalSearchParams()
 
-  const dispatch = useDispatch()
-  const company = useSelector(state => state.company.companyInfos);
-  const canDoLoan = useSelector(state => state.loan.employeeCanDoLoan);
-  const loansParams = useSelector(state => state.employee.employeeInfos?.companyId.loanParameters)
-  const loanLoading = useSelector(state => state.loan.loading);
-  const loanRepaySuccess = useSelector(state => state.loan.repayLoanSuccess);
-  const errorRepayLoan = useSelector(state => state.loan.error);
-  const [account, setAccount] = useState(company?.phoneNumber);
-  const [tempAccount, setTemplAccount] = useState(company?.phoneNumber);
-  const [errorAccount, setErrorAccount] = useState('');
- 
-  const repayMode = useSelector(state => state.loan.repayMode);
-  const selectedLoansToRepay = useSelector(state => state.loan.selectedLoansToRepay)
-  const oneLoansToRepay = useSelector(state => state.loan.oneLoanToRepay)
+  const repayData:IRepayData = JSON.parse(data as string)
 
+    const [account, setAccount] = useState(repayData.company?.phoneNumber);
+    const [tempAccount, setTemplAccount] = useState(repayData.company?.phoneNumber);
+    const [errorAccount, setErrorAccount] = useState('');
+    
   const [showAccountModifier, setShowAccountModifier] = useState(false)
   
 
-  const handleRepayLoan = ()=> {
-    if (repayMode === 'one') {
-      
-    }
-  }
-  
-  
+  const dispatch = useDispatch()
+ 
 
+  Alert.alert(JSON.stringify(repayData,null,2))
   
   const onChangeAccount = (account:string) => {
     const operator = getOperator(account.trim());
@@ -85,6 +79,9 @@ const Company_RepayLoanScreen= () => {
     }
     
   }
+
+
+  
 
 
   return (
@@ -107,8 +104,8 @@ const Company_RepayLoanScreen= () => {
         <View style={{justifyContent:'center', alignItems:'center', gap:20, padding:10}}>
           <Text style={{ ...fonts.bodyHighLight, color: colors.black, textAlign: 'center', width: '100%' } as TextStyle}>Compte de Retrait</Text>
           <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%'}}>
-            <OperatorLogo phoneNumber={account || company?.phoneNumber!} size={64} />
-            <Text style={{ ...fonts.title } as TextStyle}>{account || company?.phoneNumber! || selectedLoansToRepay[0].company?.phoneNumber}</Text>
+            <OperatorLogo phoneNumber={account || repayData.company?.phoneNumber!} size={64} />
+            <Text style={{ ...fonts.title } as TextStyle}>{account || repayData.company?.phoneNumber!}</Text>
             <TouchableOpacity onPress={()=>setShowAccountModifier(true)}>
               <APP_IMAGES.EMOJI_PEN height={48} width={48}/>
             </TouchableOpacity>

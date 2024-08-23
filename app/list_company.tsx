@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { View, Text, TouchableWithoutFeedback, Keyboard, SafeAreaView, ScrollView, FlatList, Button, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, Keyboard, ScrollView, FlatList, Button, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { KeyboardAccessoryView } from 'react-native-keyboard-accessory';
 import { ICompany } from 'money-loaner-api-types';
@@ -14,6 +14,7 @@ import CompaniesList from '../components/List/CompaniesList';
 import { router } from 'expo-router';
 import { useAppThemeColor } from '@/hooks/useThemeColor';
 import commonStyles from '@/styles/common';
+
 
 
 
@@ -66,8 +67,8 @@ const colors = useAppThemeColor()
     const styles = commonStyles(colors)
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={{flex:1}}>
+    <TouchableWithoutFeedback  onPress={Keyboard.dismiss}>
+      <View style={{flex:1}}>
         <View style={{ display: 'flex', flexDirection: 'row', padding: 10, height: 64, justifyContent: 'space-between', gap: 5, alignItems: 'center' }}>
           <TouchableOpacity onPress={()=>router.back()}>
                  <APP_IMAGES.ARROW_BACK_ICON width={32} height={32}  fill={colors.primary}/>
@@ -101,7 +102,8 @@ const colors = useAppThemeColor()
                         </View>
           )}
           </KeyboardAccessoryView>
-      </SafeAreaView>
+          </View>
+    
     </TouchableWithoutFeedback>
   );
 };

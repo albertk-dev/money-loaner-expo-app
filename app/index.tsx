@@ -1,11 +1,17 @@
 
+import ML_API from '@/api'
 import fonts from '@/constants/fonts'
 import APP_IMAGES from '@/constants/images'
 import { useAppThemeColor } from '@/hooks/useThemeColor'
+import { authActions } from '@/redux/auth/auth.slice'
+import { companyActions } from '@/redux/company/company.slice'
+import { employeeActions } from '@/redux/employee/employee.slice'
 import commonStyles from '@/styles/common'
 import { router } from 'expo-router'
+import { ICompany, IFullEmployee } from 'money-loaner-api-types'
 import React, { useEffect } from 'react'
 import { ActivityIndicator, SafeAreaView, Text, TextStyle, View } from 'react-native'
+import { useDispatch } from 'react-redux'
 
 
 export default function LoadingScreen() {
@@ -13,11 +19,59 @@ export default function LoadingScreen() {
     const styles = commonStyles(colors)
     
 
-useEffect(()=>{
-    setTimeout(()=>{
-        router.push("/choose_entity")
-    },5000)
-})
+    const dispatch = useDispatch();
+
+
+  
+
+    useEffect(() => {
+      dispatch(authActions.fetchCompaniesRequest())
+      console.log("loading ...")
+      const verifyToken = async () => {
+        try {
+              const tokenRefreshed = await ML_API.refreshToken();
+        if (tokenRefreshed) {
+          const connectedEntityType = ML_API.currentUserType;
+          if (connectedEntityType === 'company') {
+              const connectedEntity = ML_API.currentUser as ICompany;
+              dispatch(companyActions.loginCompanySuccess(connectedEntity));
+              dispatch(authActions.setSelectedCompany(connectedEntity));
+              dispatch(authActions.setConnectedEntityType('company'))
+              dispatch(authActions.setConnectedEntityData(connectedEntity))
+            dispatch(authActions.setXRSFtoken(ML_API.xsrfToken))
+  
+            router.replace("/company_content/")
+          }
+          if (connectedEntityType === 'employee') {
+            const connectedEntity = ML_API.currentUser as IFullEmployee;
+            dispatch(employeeActions.loginEmployeeSuccess(connectedEntity));
+            dispatch(authActions.setConnectedEntityType('employee'))
+            dispatch(authActions.setConnectedEntityData(connectedEntity))
+          dispatch(authActions.setXRSFtoken(ML_API.xsrfToken))
+  
+            router.replace("/employee_content/")
+        }
+          
+        } else {
+          dispatch(authActions.clearAuhtData())
+          dispatch(companyActions.clearData())
+          router.replace("/choose_entity")
+          
+        }
+        } catch (error) {
+          dispatch(authActions.clearAuhtData())
+          dispatch(companyActions.clearData())
+          router.replace("/choose_entity")
+        }
+    
+      }
+      
+      verifyToken()
+  
+        return () => {
+     
+      };
+    }, [dispatch]);
     
   return (
     <SafeAreaView style={[styles.page, styles.flexCenter, {gap:30}]}>

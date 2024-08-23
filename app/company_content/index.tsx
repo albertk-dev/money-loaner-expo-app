@@ -67,7 +67,7 @@ const Company_HomeScreen= () => {
 
 
   return (
-    <SafeAreaView style={{...style.page, padding:0,margin:0, paddingVertical:0, paddingHorizontal:0}} >
+    <View style={{...style.page, padding:0,margin:0, paddingVertical:0, paddingHorizontal:0}} >
       {/* Header */}
       {/* <View style={{ width: '100%', alignItems: 'center', height: "auto", justifyContent: 'space-between', flexDirection: 'row',padding:10 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 5 }}>
@@ -121,7 +121,7 @@ const Company_HomeScreen= () => {
    
 
 
-    </SafeAreaView>
+    </View>
   );
 };
 

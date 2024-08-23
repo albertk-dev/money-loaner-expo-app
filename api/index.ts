@@ -156,11 +156,13 @@ readonly  _baseURL:string;
                 this._appParams = json;
                 return json
             } else {
+                console.log("res no get", res)
                 const json: { message: string; error: { name: string; message: string } } = await res.json();
                 return this._appParams;
             }
 
         } catch (error:any) {
+            console.log(error.message || error)
             throw new Error(error.message || error)
     }
 }

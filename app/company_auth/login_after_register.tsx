@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { ActivityIndicator, Button, Image, SafeAreaView, Text, TextStyle, View } from "react-native";
+import { ActivityIndicator, Button, Image, Text, TextStyle, View } from "react-native";
 import APP_IMAGES from "../../constants/images";
 
 import { RouteProp } from "@react-navigation/native";
@@ -11,6 +11,7 @@ import fonts from "../../constants/fonts";
 import commonStyles from "@/styles/common";
 import { useAppThemeColor } from "@/hooks/useThemeColor";
 import { router, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 type CompanyAuthParams = {

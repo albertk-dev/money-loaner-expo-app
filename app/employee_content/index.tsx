@@ -133,7 +133,7 @@ const Employee_HomeScreen= () => {
   return (
     <SafeAreaView style={{...style.page, padding:0,margin:0, paddingVertical:0, paddingHorizontal:0}} >
       {/* Header */}
-      <View style={{ width: '100%', alignItems: 'center', height: "auto", justifyContent: 'space-between', flexDirection: 'row',padding:10 }}>
+      {/* <View style={{ width: '100%', alignItems: 'center', height: "auto", justifyContent: 'space-between', flexDirection: 'row',padding:10 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 5 }}>
           <APP_IMAGES.LOGO width={32} height={32} />
           <Text style={{ ...fonts.title, color: colors.primary } as TextStyle}>Money Loaner</Text>
@@ -146,7 +146,7 @@ const Employee_HomeScreen= () => {
           
         </TouchableOpacity>
 
-      </View>
+      </View> */}
 
       
       {/**Le contenu */}

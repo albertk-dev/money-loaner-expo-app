@@ -1,4 +1,20 @@
 /* eslint-disable prettier/prettier */
+import {
+ 
+  StyleSheet,
+
+  Image,
+  TextStyle,
+} from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import APP_FONTS from '../../constants/fonts';
+
+import APP_IMAGES from '../../constants/images';
+
+import SelectCompany from '../../components/Buttons/SelectCompany';
+import Links from '../../components/Links';
+import { authActions } from '../../redux/auth/auth.slice';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -15,65 +31,101 @@ import PinKeyboard from '../../components/CodePin/PinKeyboard';
 import { CODE_PIN_MAX_LENGTH } from '../../constants/data';
 import { useDispatch } from 'react-redux';
 import { employeeActions } from '../../redux/employee/employee.slice';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAppThemeColor } from '@/hooks/useThemeColor';
 
+const style = CommonStyle;
 
 
+const Employee_PinCodeScreen = () => {
 
-const Employee_ChangePinScreen = () => {
-
-
+    
     const colors = useAppThemeColor()
     const style = CommonStyle(colors);
-
+  const selectedCompany = useSelector(state => state.auth.selectedCompany);
   const [pinCode, setPinCode] = useState('')
   const [keyboardDisabled, setKeyBoardDisabled] = useState(false)
-  const [operationFinished, setOperationFinished] = useState(false)
-
-  const employee = useSelector(state => state.employee.employeeInfos)
-  
-  const changeLoading = useSelector(state => state.employee.updatingEmployee);
-  const changeSuccess = useSelector(state => state.employee.updateEmployeeSuccess);
-  const changeError = useSelector(state => state.employee.errorUpdatingEmployee)
+  const loginLoading = useSelector(state => state.employee.loginLoading);
+  const loginSuccess = useSelector(state => state.employee.loginSuccess);
+  const loginError = useSelector(state => state.employee.loginErrorMessage)
 
   const dispatch = useDispatch()
+  const {data } = useLocalSearchParams()
+
+  const verifiedEmployee = JSON.parse(data as string)
 
 
 
   const handleLogin = () => {
     setKeyBoardDisabled(true)
-    dispatch(employeeActions.updateEmployeeRequest({ id: employee?._id!, data: { codePin: pinCode } }))   
+    dispatch(employeeActions.loginEmployeeRequest({_id:verifiedEmployee?._id!, codePin:pinCode}))   
   }
 
 
   useEffect(() => {
-    if (changeError) {
-      Alert.alert("Echec de connexion", changeError)
+    if (loginError) {
+      Alert.alert("Echec de connexion", loginError)
       setKeyBoardDisabled(false)
     }
-}, [changeError]);
+}, [loginError]);
 
 
 useEffect(() => {
-     if (changeSuccess === true) {
-       Alert.alert('Succès', `votre code a bien été modifier`)
-       setOperationFinished(true)
-       setTimeout(() => {
-          router.back()
-       }, 3000)
-      
+     if (loginSuccess === true) {
+       Alert.alert('Succès', `vous etes connecter en tant que ${verifiedEmployee?.name} `)
+       router.replace("/employee_content")
     }
-},[changeSuccess])
+},[loginSuccess])
 
 
   return (
     <SafeAreaView style={style.page}>
       <View style={style.Headerblock}>
-        {/* <APP_IMAGES.LOGO width={48} height={54} /> */}
-        <Text style={style.HeaderText}>Modifier le code Pin</Text>
+        <APP_IMAGES.LOGO width={48} height={54} />
+        <Text style={style.HeaderText}>Money Loaner</Text>
       </View>
 
+      <View>
+        <View style={{ ...style.flexCenter, gap: 5 }}>
+          {verifiedEmployee?.photoURL != null &&
+            verifiedEmployee?.photoURL != 'none' ? (
+            <Image
+              source={{ uri: verifiedEmployee?.photoURL }}
+              style={{ borderRadius: 100, marginBottom: 5 }}
+              width={64}
+              height={64}
+            />
+          ) : (
+            <View
+              style={{
+                borderRadius: 100,
+                padding: 0,
+                height: 64,
+                width: 64,
+                marginBottom: 5,
+              }}>
+              <APP_IMAGES.ICON_FIELD_EMPTY_EMPLOYEE
+                height={48}
+                width={48}
+                fill={colors.background}
+              />
+            </View>
+          )}
+        </View>
+        <View>
+          <Text
+            style={
+              {
+                ...APP_FONTS.title,
+                fontSize: 20,
+                textAlign: 'center',
+                color: colors.black,
+              } as TextStyle
+            }>
+            {verifiedEmployee?.name}
+          </Text>
+        </View>
+      </View>
 
 
 
@@ -85,12 +137,13 @@ useEffect(() => {
 
       <View style={{ display: 'flex', gap: 10 }}>
         <Buttons.Primary
-          isLoading={changeLoading!}
+          isLoading={loginLoading}
           disabled={pinCode.length < CODE_PIN_MAX_LENGTH}
           onPress={handleLogin}
         />
         <Buttons.Previous onPress={() => {
-          dispatch(employeeActions.resetUpdatingEmployee())
+          dispatch(employeeActions.clearData())
+          dispatch(authActions.clearVerificationData())
           router.back()
         }} />
       </View>
@@ -99,4 +152,4 @@ useEffect(() => {
   );
 };
 
-export default Employee_ChangePinScreen;
+export default Employee_PinCodeScreen;
