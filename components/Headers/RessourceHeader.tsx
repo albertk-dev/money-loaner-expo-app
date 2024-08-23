@@ -8,13 +8,16 @@ import {  Text, TextStyle, TouchableOpacity, View } from "react-native";
 type Props = {
     appName: string,
     colors:IAppColors,
+    onBack?:()=>void
 }
 
-const  RessourceHeader:React.FC<Props> = ({ appName, colors}) => {
+const  RessourceHeader:React.FC<Props> = ({ appName, colors, onBack}) => {
 
     return (
         <View style={{ display: 'flex', flexDirection: 'row', padding: 10, height: 64, justifyContent: 'space-between', gap: 5, alignItems: 'center' }}>
-          <TouchableOpacity onPress={()=>router.back()}>
+          <TouchableOpacity onPress={()=> {
+            onBack? onBack():router.back()
+          }}>
                  <APP_IMAGES.ARROW_BACK_ICON width={32} height={32}  fill={colors.primary}/>
           </TouchableOpacity>
    

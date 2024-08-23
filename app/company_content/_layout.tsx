@@ -4,15 +4,17 @@ import RessourceHeader from "@/components/Headers/RessourceHeader";
 import APP_IMAGES from "@/constants/images";
 import { useSelector } from "@/hooks/useSelector";
 import { useAppThemeColor } from "@/hooks/useThemeColor";
-
+import { loanActions } from "@/redux/loan/loan.slice";
 import { router} from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import { ICompany } from "money-loaner-api-types";
+import { useDispatch } from "react-redux";
+
 
 
 export default function CompanyRoute() {
   const colors = useAppThemeColor();
   const company = useSelector((state) => state.company.companyInfos);
+  const dispatch = useDispatch()
 
   return (
     <Drawer
@@ -25,7 +27,7 @@ export default function CompanyRoute() {
     >
       <Drawer.Screen name="index" options={{
         title:"Acceuil",
-        drawerIcon: (props)=><APP_IMAGES.ICON_HOME height={48} width={48}/>,
+        drawerIcon: (props)=><APP_IMAGES.ICON_HOME height={32} width={32}/>,
       }}/>
       <Drawer.Screen name="add_employee" options={{
         drawerItemStyle:{display:"none"},
@@ -35,7 +37,7 @@ export default function CompanyRoute() {
       <Drawer.Screen
        options={{
          title:"Gestion des employés",
-         drawerIcon: (props)=><APP_IMAGES.EMPLOYEE_IMAGE height={48} width={48}/>,
+         drawerIcon: (props)=><APP_IMAGES.EMPLOYEE_IMAGE height={32} width={32}/>,
         header: (d) => <RessourceHeader appName="Gestion des employés" colors={colors}/>
       }}
        name="gestion_employee" />
@@ -43,7 +45,7 @@ export default function CompanyRoute() {
       <Drawer.Screen 
       options={{
         title:"Gestion des prets",
-        drawerIcon: (props)=><APP_IMAGES.ICON_LOAN_GESTION stroke={colors.primary} height={48} width={48}/>,
+        drawerIcon: (props)=><APP_IMAGES.ICON_LOAN_GESTION stroke={colors.primary} height={32} width={32}/>,
         header: (d) => <RessourceHeader appName="Gestion des prèts" colors={colors}/>
       }}
        name="gestion_prets"
@@ -53,13 +55,15 @@ export default function CompanyRoute() {
       <Drawer.Screen name="repay"
        options={{
         drawerItemStyle:{display:"none"},
-        header: (d) => <RessourceHeader appName="Rembourssement" colors={colors}/>
+        header: (d) => <RessourceHeader onBack={()=>{
+          dispatch(loanActions.getAllCompanyLoansStart({companyId:company?._id!}))
+          router.push("/company_content/gestion_prets")}} appName="Rembourssement" colors={colors}/>
         }} />
 
         <Drawer.Screen
           options={{
             title:"Paramètres",
-            drawerIcon: (props)=><APP_IMAGES.ICON_SETTING stroke={colors.primary} height={48} width={48}/>,
+            drawerIcon: (props)=><APP_IMAGES.ICON_SETTING stroke={colors.primary} height={32} width={32}/>,
             header: (d) => <RessourceHeader appName="paramètres" colors={colors}/>
           }}
          name="settings"

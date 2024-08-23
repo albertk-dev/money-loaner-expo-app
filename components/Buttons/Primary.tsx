@@ -19,7 +19,7 @@ const style = PrimaryButtonStyle(colors);
   const finalStyle: ViewStyle = disabled ? { ...style.block, opacity: 0.5 } : style.block;
 
   return (
-    <TouchableOpacity disabled={disabled} onPress={onPress} style={{...finalStyle, backgroundColor: isLoading? colors.text: colors.primary}}>
+    <TouchableOpacity disabled={disabled} onPress={onPress} style={{...finalStyle, backgroundColor: isLoading? colors.white: colors.primary}}>
       {!isLoading ? <Text style={style.text as TextStyle}>{title}</Text> : 
       <ActivityIndicator color={colors.primary} size={'small'}/>}
     </TouchableOpacity>

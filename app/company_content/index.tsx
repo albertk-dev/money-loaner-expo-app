@@ -90,7 +90,7 @@ const Company_HomeScreen= () => {
    
         {company.employees?.length !== 0 && 
           <View>
-            <Text>Activités récentes</Text>
+            <Text>Rien ici pour le moment</Text>
           </View>}
         
         {company.employees?.length === 0 && <View style={{width:250, gap:10,justifyContent:'center', alignItems:'center'}}>

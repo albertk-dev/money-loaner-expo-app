@@ -34,6 +34,7 @@ import CommonStyle from "../../styles/common";
 
 import { useAppThemeColor } from "@/hooks/useThemeColor";
 import { router } from "expo-router";
+import CustomCheckbox from "@/components/Checbox/CustomCheckbox";
 
 const Company_GestionPretsScreen = () => {
   const colors = useAppThemeColor();
@@ -42,13 +43,16 @@ const Company_GestionPretsScreen = () => {
   const company = useSelector(
     (state) => state.company.companyInfos as ICompany
   );
-  const loans = useSelector((state) => state.loan.companyLoans);
+  const allLoansOfCompany = useSelector((state) => state.loan.companyLoans);
+  const unRefundedLoans = allLoansOfCompany.filter(l=> !l.refunded)
   const loading = useSelector((state) => state.loan.loading);
   const errorMessage = useSelector((state) => state.loan.error);
 
   const [search, setSearch] = useState<string>("");
   const [sortedBy, setSortedBy] = useState<"amount" | "date" | "job">("date");
   const [order, setOrder] = useState<boolean>(true);
+  const [showRefundeLoans, setShowRefundedLoans] = useState(false);
+  const loansToShow = showRefundeLoans? allLoansOfCompany : unRefundedLoans;
 
   const sortedByItems = [
     { label: "Montant", onPress: () => setSortedBy("amount") },
@@ -151,59 +155,101 @@ const Company_GestionPretsScreen = () => {
       </View>
       <View
         style={{
-          flexDirection: "row",
+         
           padding: 10,
           justifyContent: "space-between",
           alignItems: "center",
+         
+          gap:5
         }}
       >
-        <DropdownMenu items={sortedByItems} />
-        <DropdownMenu items={orderItems} />
+        <View style={{flexDirection:"row", width:'100%', justifyContent:"space-between"}}>
+          <DropdownMenu items={sortedByItems} />
+          <DropdownMenu items={orderItems} />
+        </View>
+        
+        <View>
+          <CustomCheckbox colors={colors} label="Afficher Tout?" checked={showRefundeLoans} onChange={(c)=> setShowRefundedLoans(c)}/>
+        </View>
       </View>
 
-      {selectedLoans.length === 0 ? (
-        <View style={{ width: "100%" }}>
-          <TouchableOpacity
-            style={{
-              padding: 10,
-              backgroundColor: colors.primary,
-            }}
-            onPress={() => {
-              router.push({
-                pathname: "/company_content/repay",
-                params: {
-                  data: JSON.stringify({ loans, company }),
-                },
-              });
-            }}
-          >
-            <Text
-              style={{ color: colors.white, ...fonts.subtitle } as TextStyle}
-            >
-              Remboursser tous les prets
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={{ width: "100%" }}>
-          <TouchableOpacity
-            onPress={() => {
-              router.push({
-                pathname: "/company_content/repay",
-                params: {
-                  data: JSON.stringify({ loans:selectedLoans, company }),
-                },
-              });
-            }}
-          >
-            <Text
-              style={{ color: colors.white, ...fonts.subtitle } as TextStyle}
-            >
-              Remboursser les prets Sélectionnés
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <View>
+        {(()=>{
+          if (unRefundedLoans.length === 0) {
+            return (
+              <View style={{width:"100%",height:10, backgroundColor:"#0f0"}}/>
+            )   
+          }else if(selectedLoans.length === 0){
+
+            return (
+              <View style={{ width: "100%" }}>
+                <TouchableOpacity
+                  style={{
+                    padding: 10,
+                    backgroundColor: colors.primary,
+                    borderRadius:10,
+                  justifyContent:'center',
+                  alignItems:'center'
+                  }}
+                  onPress={() => {
+                    dispatch(loanActions.clearRepaydata())
+                    router.push({
+                      pathname: "/company_content/repay",
+                      params: {
+                        data: JSON.stringify({ loans: unRefundedLoans, company }),
+                      },
+                    });
+                  }}
+                >
+                  <Text
+                    style={{ color: colors.white, ...fonts.title } as TextStyle}
+                  >
+                    Remboursser tous les prets
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )
+
+          }else if(selectedLoans.filter(l=>!l.refunded).length !== 0){
+            return (
+              <View style={{ width: "100%" }}>
+                <TouchableOpacity
+                style={{
+                  padding: 10,
+                  backgroundColor: colors.primary,
+                  borderRadius:10,
+                  justifyContent:'center',
+                  alignItems:'center'
+                }}
+                  onPress={() => {
+                    dispatch(loanActions.clearRepaydata())
+                    router.push({
+                      pathname: "/company_content/repay",
+                      params: {
+                        data: JSON.stringify({ loans:selectedLoans, company }),
+                      },
+                    });
+                  }}
+                >
+                  <Text
+                    style={{ color: colors.white, ...fonts.title } as TextStyle}
+                  >
+                    Remboursser les prets Sélectionnés
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )
+
+          }else{
+            return (
+              <View style={{width:'100%'}}>
+                <Text style={{...fonts.bodymin} as TextStyle}>tous les prets sélectionnées sont remboursser</Text>
+              </View>
+            )
+          }
+        })()}
+      </View>
+
 
       {loading && (
         <View
@@ -224,6 +270,7 @@ const Company_GestionPretsScreen = () => {
         <LoanList
           onSelectLoan={(ls) => setSelectedLoans(ls)}
           onRepay={(loan) => {
+            dispatch(loanActions.clearRepaydata())
             router.push({
               pathname:"/company_content/repay",
               params:{
@@ -231,7 +278,7 @@ const Company_GestionPretsScreen = () => {
               }
             })
           }}
-          data={loans}
+          data={loansToShow}
           sortBy={sortedBy}
           entityType="company"
           searchQuery={search}

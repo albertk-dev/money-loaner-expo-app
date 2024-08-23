@@ -52,7 +52,7 @@ const LoanItem: React.FC<LoanItemProps> = ({ loan,menuItems, entityType,  readyT
       onClick: (data:ILoan)=>{
         onRepay(data)
       },
-      available:true,
+      available:entityType === "company",
     }] : [])
     ,{
     text: selected? 'Désélectionner':'Sélectionner',
@@ -70,7 +70,7 @@ const LoanItem: React.FC<LoanItemProps> = ({ loan,menuItems, entityType,  readyT
             {readyToSelect &&
               <TouchableHighlight onPress={()=>{    onSelect(!selected, loan)
                 setSelected(!selected)}} style={{padding:1,  borderRadius: 100, borderWidth: 2, borderColor: colors.primary }}>
-              <View style={{ height: 10, width: 10, backgroundColor: selected ? colors.primary : colors.text, borderRadius: 100,  }} />
+              <View style={{ height: 10, width: 10, backgroundColor: selected ? colors.primary : colors.white, borderRadius: 100,  }} />
 
               </TouchableHighlight>
               

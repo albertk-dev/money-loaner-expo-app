@@ -5,6 +5,7 @@ import {
 
   Image,
   TextStyle,
+  TouchableOpacity,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -134,7 +135,10 @@ useEffect(() => {
 
       {/** Zone des boutons */}
     
+        <TouchableOpacity onPress={()=>Alert.alert("Première connexion ?","Utilisez les 04 derniers chiffres de votre numéro de téléphone en guise de code pin (si vous ne savez pas lequel, Renseignez vous auprès de votre entreprise) ")}>
+            <Text style={{textDecorationLine:"underline"}}>première connexion?</Text>
 
+        </TouchableOpacity>
       <View style={{ display: 'flex', gap: 10 }}>
         <Buttons.Primary
           isLoading={loginLoading}

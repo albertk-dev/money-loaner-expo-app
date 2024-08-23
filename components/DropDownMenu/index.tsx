@@ -66,7 +66,6 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ items }) => {
 
 const customStyles = (colors:IAppColors)=> StyleSheet.create({
   container: {
-  
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',

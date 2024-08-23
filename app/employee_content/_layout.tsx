@@ -28,7 +28,7 @@ export default function EmployeeRoute() {
       <Drawer.Screen name="index" 
       options={{ 
         title: "Acceuil",
-        drawerIcon: (props)=><APP_IMAGES.ICON_HOME height={48} width={48}/>,
+        drawerIcon: (props)=><APP_IMAGES.ICON_HOME height={32} width={32}/>,
          }} />
       <Drawer.Screen
         options={{ drawerItemStyle: { display: "none" } }}
@@ -36,7 +36,7 @@ export default function EmployeeRoute() {
       />
       <Drawer.Screen name="history"  options={{
         title:"Voir l'historique",
-        drawerIcon: (props)=><APP_IMAGES.ICON_SEE_REPORT height={48} width={48}/>,
+        drawerIcon: (props)=><APP_IMAGES.ICON_SEE_REPORT height={32} width={32}/>,
             
              header: (d) => (
                 <DrawerHeader

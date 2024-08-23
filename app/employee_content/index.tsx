@@ -20,6 +20,7 @@ import CommonStyle from '../../styles/common';
 import { useAppThemeColor } from '@/hooks/useThemeColor';
 import { router } from 'expo-router';
 import { IAppColors } from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
 
 
 
@@ -109,6 +110,8 @@ const Employee_HomeScreen= () => {
 
 
 
+
+
   const handleAskForLoan = (value: number) => {
   dispatch(loanActions.createLoanStart({employeeId:employee._id, companyId:employee.companyId._id, repayAmount: value + (value*5)/100, amount:value, account:account!}))
 }
@@ -131,7 +134,7 @@ const Employee_HomeScreen= () => {
 
 
   return (
-    <SafeAreaView style={{...style.page, padding:0,margin:0, paddingVertical:0, paddingHorizontal:0}} >
+    <View style={{...style.page, padding:0,margin:0, paddingVertical:0, paddingHorizontal:0}} >
       {/* Header */}
       {/* <View style={{ width: '100%', alignItems: 'center', height: "auto", justifyContent: 'space-between', flexDirection: 'row',padding:10 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 5 }}>
@@ -152,11 +155,19 @@ const Employee_HomeScreen= () => {
       {/**Le contenu */}
       <ScrollView style={{width:'100%'}} contentContainerStyle={[{...style.page,backgroundColor:Color(colors.background).darken(0.02).toString(), borderRadius:8,width:'100%'}, {justifyContent:'flex-start', gap:20}]}>
    
-        <View style={{flexDirection:'row', gap:10, width:"100%" }}>
-          <Text style={{ color: colors.black }}>{getGreeting()}</Text>
+        <View style={{flexDirection:'row', gap:10, width:"100%", justifyContent:"space-between", alignItems:"center" }}>
+          <View style={{flexDirection:"row", gap:10}}>
+            <Text style={{ color: colors.black }}>{getGreeting()}</Text>
           <Text style={{ color: colors.secondary }}>{employee?.name}
             <Text style={{ color: colors.black }}>,</Text>
           </Text>
+          </View>
+          
+          <TouchableOpacity onPress={()=>{
+               dispatch(loanActions.verifyEmployee({ employeeId: employee._id }))
+          }}>
+            <Ionicons name="refresh-circle" style={{fontSize:32, color:colors.primary}}/>
+          </TouchableOpacity>
           
         </View>
         <LoanSection initialValue={getPercentage(loansParams?.maxPercentage!,Number(employee.salary))} min={loansParams?.minAmount!} max={getPercentage(loansParams?.maxPercentage!,Number(employee.salary))} step={loansParams?.stepAmount!}  onAskForLoan={handleAskForLoan} disabled={!canDoLoan} />
@@ -267,7 +278,7 @@ const Employee_HomeScreen= () => {
           <Links.Primary title="conditions d'utilisations" onPress={() => Alert.alert("conditions d'utilisation...")} />
         </View>
 
-    </SafeAreaView>
+    </View>
   );
 };
 

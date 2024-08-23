@@ -449,7 +449,7 @@ readonly  _baseURL:string;
    public async repayMultiple(data: IRepayMultipleLoansRequest): Promise<{ message: string; data: { refunded: boolean; }; }> {
     try {
         const url = `${this._baseURL}/loan/company/${data.companyId}/repayMultiple`;
-        const response = await this.doAuthRequest(url, undefined, 'PATCH');
+        const response = await this.doAuthRequest(url, {loanIds: data.loanIds, repayAccount: data.repayAccount}, 'PATCH');
         return this.handleResponse<{ message: string; data: { refunded: boolean; }; }>(response);
     } catch (error) {
         console.error('Error repaying  loans:', error,data.loanIds);

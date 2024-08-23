@@ -12,9 +12,7 @@ interface LoanState {
     employeeCanDoLoan: boolean;
     loanCreatedSuccess: boolean | null;
     repayLoanSuccess: boolean | null;
-    selectedLoansToRepay: ILoan[];
-    oneLoanToRepay: ILoan | null;
-    repayMode: 'one' | 'multiple' | 'all' | 'none'
+
 
 
 }
@@ -25,9 +23,7 @@ const initialState: LoanState = {
     employeeLoans:[],
     loading: false,
     error: null,
-    selectedLoansToRepay: [],
-    oneLoanToRepay:  null,
-    repayMode: 'none',
+   
     employeeCanDoLoan: false,
     loanCreatedSuccess: null,
     repayLoanSuccess:null,
@@ -53,7 +49,7 @@ const loanSlice = createSlice({
             state.error = action.payload;
             state.loanCreatedSuccess = false;
         },
-        repayLoanStart(state, action: PayloadAction<{ mode: 'one' | 'multiple' | 'all' | 'none', companyId: string, loans_Ids: Array<string>, repayAccount: string }>) {
+        repayLoanStart(state, action: PayloadAction<{ mode: 'multiple' , companyId: string, loans_Ids: Array<string>, repayAccount: string }>) {
             state.loading = true;
             state.error = null;
             state.repayLoanSuccess = null;
@@ -108,23 +104,7 @@ const loanSlice = createSlice({
             state.error = action.payload;
             state.employeeCanDoLoan = false
         },
-        clearSelectedLoans(state){
-                state.selectedLoansToRepay = []
-        },
-      
-        setRepayMode(state, action:PayloadAction<'one' | 'multiple' | 'all'>){
-            state.repayMode = action.payload;
-        },
-        setOneLoanToRepay(state, action:PayloadAction<ILoan>){
-            state.oneLoanToRepay = action.payload;
-        },
-        addLoanToRepay(state, action:PayloadAction<ILoan>){
-            state.selectedLoansToRepay.push(action.payload)
-        },
-        removeLoanToRepay(state, action:PayloadAction<ILoan>){
-            state.selectedLoansToRepay = state.selectedLoansToRepay.filter((l)=>l._id!= action.payload._id)
-        },
-        
+       
        
         clearRepaydata(state) {
             state.repayLoanSuccess = null;
