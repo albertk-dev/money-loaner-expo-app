@@ -38,6 +38,12 @@ declare module 'money-loaner-api-types' {
     interface IFullEmployee extends IEmployee {
         companyId: ICompany;
     }
+    interface IActivity {
+        type: "loan"| "repay";
+        date?: Date;
+        amount: number;
+        companyId:string;
+    }
 
     interface IRefreshToken {
         _id?: string;
@@ -327,6 +333,10 @@ export interface IGetAllCompanyLoansRequest {
         repayAccount: string;
         companyId: string;
       }
+      export interface IGetActivitiesResponse{
+        message:string;
+        data:IActivity[];
+      }
 
     // Déclarations des fonctions pour l'API
     interface Api {
@@ -353,6 +363,7 @@ export interface IGetAllCompanyLoansRequest {
         getAllCompanyLoans(data: IGetAllCompanyLoansRequest): Promise<IGetAllCompanyLoansResponse>;
         updateLoanParameters(data: IUpdateLoanParametersRequest): Promise<IUpdateLoanParametersResponse>;
         verifyIfEmployeeCanDoLoan(data: IVerifyIfEmployeeCanDoLoanRequest):Promise<IVerifyIfEmployeeCanDoLoanResponse>
-        getAllLoansOfEmployee(data: IGetAllLoansOfEmployeeRequest):Promise<IGetAllLoansOfEmployeeResponse>
+        getAllLoansOfEmployee(data: IGetAllLoansOfEmployeeRequest):Promise<IGetAllLoansOfEmployeeResponse>;
+        getLastedActivities(companyId: string, number?:number)
     }
 }

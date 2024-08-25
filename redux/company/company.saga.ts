@@ -1,7 +1,7 @@
 // company.saga.ts
 import { call, put, takeLatest } from 'redux-saga/effects';
 import ML_API from '../../api';
-import { IGetAllEmployeesRequest, IGetAllEmployeesResponse, ILoginCompanyRequestBody, ILoginCompanyResponse, IRegisterEmployeeRequestBody, IRegisterEmployeeResponse, IUpdateCompanyRequest, IUpdateCompanyResponse, IUpdateEmployeeRequest, IUpdateEmployeeResponse, IUpdateLoanParametersRequest, IUpdateLoanParametersResponse } from 'money-loaner-api-types';
+import { IGetActivitiesResponse, IGetAllEmployeesRequest, IGetAllEmployeesResponse, ILoginCompanyRequestBody, ILoginCompanyResponse, IRegisterEmployeeRequestBody, IRegisterEmployeeResponse, IUpdateCompanyRequest, IUpdateCompanyResponse, IUpdateEmployeeRequest, IUpdateEmployeeResponse, IUpdateLoanParametersRequest, IUpdateLoanParametersResponse } from 'money-loaner-api-types';
 import { companyActions } from './company.slice';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { authActions } from '../auth/auth.slice';
@@ -107,12 +107,26 @@ function* fetchEmployees(action: PayloadAction<IGetAllEmployeesRequest>) {
     
 }
 
+function* fetchActivities(action: PayloadAction<{companyId:string, number?:number}>){
+    try {
+        const response: IGetActivitiesResponse = yield call([ML_API, ML_API.getLastedActivities], action.payload.companyId, action.payload.number);
+        console.log(response.data)
+        if(response){
+            yield put(companyActions.setActivities(response.data))
+        }
+    } catch (error) {
+        console.log(error)
+        
+    }
+}
+
 export default function* companySagas() {
     yield takeLatest(companyActions.loginCompanyRequest.type, login);
     yield takeLatest(companyActions.updateCompanyRequest.type, update);
     yield takeLatest(companyActions.addEmployeeRequest.type, addEmployee);
     yield takeLatest(companyActions.updateEmployeeRequest.type, updateEmployee);
     yield takeLatest(companyActions.getEmployeesrequest.type, fetchEmployees);
-    yield takeLatest(companyActions.updateLoanParamRequest.type, updateLoanParameters)
+    yield takeLatest(companyActions.updateLoanParamRequest.type, updateLoanParameters);
+    yield takeLatest(companyActions.getActivitiesRequest.type, fetchActivities);
 }
 

@@ -4,6 +4,7 @@ import RessourceHeader from "@/components/Headers/RessourceHeader";
 import APP_IMAGES from "@/constants/images";
 import { useSelector } from "@/hooks/useSelector";
 import { useAppThemeColor } from "@/hooks/useThemeColor";
+import { companyActions } from "@/redux/company/company.slice";
 import { loanActions } from "@/redux/loan/loan.slice";
 import { router} from "expo-router";
 import { Drawer } from "expo-router/drawer";
@@ -46,7 +47,10 @@ export default function CompanyRoute() {
       options={{
         title:"Gestion des prets",
         drawerIcon: (props)=><APP_IMAGES.ICON_LOAN_GESTION stroke={colors.primary} height={32} width={32}/>,
-        header: (d) => <RessourceHeader appName="Gestion des prèts" colors={colors}/>
+        header: (d) => <RessourceHeader onBack={()=>{
+          dispatch(companyActions.getActivitiesRequest({companyId: company?._id!, number:10}))
+          router.back()
+        }} appName="Gestion des prèts" colors={colors}/>
       }}
        name="gestion_prets"
       

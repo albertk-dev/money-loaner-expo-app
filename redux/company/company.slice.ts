@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ICompany, IEmployee, IGetAllEmployeesRequest, ILoginCompanyRequestBody, IRegisterEmployeeRequestBody, IUpdateCompanyRequest, IUpdateEmployeeRequest, IUpdateLoanParametersRequest } from "money-loaner-api-types";
+import { IActivity, ICompany, IEmployee, IGetAllEmployeesRequest, ILoginCompanyRequestBody, IRegisterEmployeeRequestBody, IUpdateCompanyRequest, IUpdateEmployeeRequest, IUpdateLoanParametersRequest } from "money-loaner-api-types";
 
 
 
 interface companyState {
     companyInfos: ICompany | null;
-    employees: Array<IEmployee> | null;
+    employees: IEmployee[];
     loginLoading: boolean | null;
     loginSuccess: boolean | null;
     loginErrorMessage: string | null;
@@ -27,12 +27,14 @@ interface companyState {
     updatingLoanParam: boolean | null;
     updateLoanParamSuccess: boolean | null;
     errorUpdatingLoanParam: string| null;
+    lastedActivities:IActivity[];
    
 }
 
 const initialState: companyState = {
     companyInfos:null,
-    employees:  null,
+    lastedActivities:[],
+    employees:  [],
     loginLoading: null,
     loginSuccess: null,
     loginErrorMessage:  null,
@@ -178,9 +180,18 @@ export const companySlice = createSlice({
             state.updatingCompany = null
             state.errorUpdatingCompany = null
         },
+        getActivitiesRequest(state, action: PayloadAction<{companyId:string, number?:number}>){
+            console.log("getting acttivities...")
+
+        },
+        setActivities(state,action: PayloadAction<IActivity[]>){
+            console.log("act payload", action)
+           
+            state.lastedActivities = action.payload
+        },
         clearData(state) {
             state.companyInfos = null;
-            state.employees = null;
+            state.employees = [];
             state.loginLoading = null;
             state.loginSuccess = null;
             state.loginErrorMessage = null;

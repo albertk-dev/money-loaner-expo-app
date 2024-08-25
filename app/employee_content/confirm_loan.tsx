@@ -33,19 +33,21 @@ import Buttons from '@/components/Buttons';
 import { Ionicons } from '@expo/vector-icons';
 
 
-const getPercentage = (percent: number, max: number) => {
-  return Math.round(percent/100*max)
+
+
+export type LoanBeforeConfirm = {
+  employeeId:string,
+  companyId:string,
+  repayAmount: number,
+  amount:number,
+  account:string
+
 }
 
-interface IRepayData {
-  loans: ILoan[],
-  company: ICompany,
-}
-
-interface IRepayVerifField{
+type ConfirmField = {
   id:number,
-  label: string,
-  value: string,
+  label:string,
+  value:string,
 }
 
 const Company_RepayLoanScreen= () => {
@@ -56,68 +58,68 @@ const Company_RepayLoanScreen= () => {
      
   const {data} = useLocalSearchParams()
 
-  const repayData:IRepayData = JSON.parse(data as string)
-  const unRefundedLoans = repayData.loans.filter(l=>!l.refunded)
-  
-
-    const [account, setAccount] = useState(repayData.company?.phoneNumber || repayData.loans[0].account);
-    const [tempAccount, setTemplAccount] = useState(repayData.company?.phoneNumber || repayData.loans[0].account);
-    const [errorAccount, setErrorAccount] = useState('');
-    
-  const [showAccountModifier, setShowAccountModifier] = useState(false)
-  
+  const loanData:LoanBeforeConfirm= JSON.parse(data as string)
+ 
 
   const dispatch = useDispatch()
 
   const loading = useSelector(state=> state.loan.loading)
-  const success = useSelector(state => state.loan.repayLoanSuccess);
+  const success = useSelector(state => state.loan.loanCreatedSuccess);
   const error = useSelector(state => state.loan.error);
+  const appPercentage = useSelector(state=> state.app.appPercentage)
 
   
- 
-
+  useEffect(() => {
+    dispatch(authActions.clearAuhtData())
+    dispatch(loanActions.clearError())
+    dispatch(loanActions.clearCreateData())
+    
+},[])
   
-  const onChangeAccount = (account:string) => {
-    const operator = getOperator(account.trim());
-    if (!cameroonPhoneRegex.test(account.trim())) {
-      setErrorAccount("ce numéro n'est pas camerounnais")
-    } else if (operator !== 'mtn' && operator !== 'orange') {
-      setErrorAccount("cet opérateur n'est pas supporter")
-      } else {
-      setErrorAccount("")
-      setAccount(account)
-      setShowAccountModifier(false)
-    }
+  useEffect(() => {
+
+    if (success && loading === false) {
+    Alert.alert("pret effectuer avec succes");
+   
+
+
+  } 
+
+    if (error && loading=== false) {
+      Alert.alert("la demande de pret à échouer ", `raison : ${error}`);
+      
     
   }
+  },[success, loading, error])
+  
+  
 
-  const repayVerifField:IRepayVerifField[] = [
+  
+
+  const loanVerifField:ConfirmField[] = [
     {
       id:1,
-      label: "Nombre de prets à  remboursser ",
-      value: unRefundedLoans.length.toString()
+      label: "Vous empruntez la somme de",
+      value: loanData.amount.toString() + " CFA"
     },
     {
       id:2,
-      label: "Montant Total Emprunté",
-      value: unRefundedLoans.reduce((acc,curr)=> acc + curr.amount,0).toString()+" CFA"
+      label: "Taux d'intéret ",
+      value: appPercentage.toString() + "%"
     },
     {
       id:3,
       label: "Montant Total à Remboursser",
-      value: unRefundedLoans.reduce((acc,curr)=> acc + curr.repayAmount,0).toString()+" CFA"
+      value: (loanData.amount + (loanData.amount*appPercentage/100)).toString()+" CFA"
     },
     {
       id:4,
-      label: "intérets ",
-      value: unRefundedLoans.reduce((acc,curr)=> acc + (curr.repayAmount-curr.amount),0).toString()+" CFA"
+      label: "compte de récupération ",
+      value: loanData.account
     }
   ]
 
-  if (unRefundedLoans.length === 0) {
-    router.push("/company_content/gestion_prets")
-  }
-  
+
 
 
   return (
@@ -129,7 +131,7 @@ const Company_RepayLoanScreen= () => {
    
 
    <View style={{gap:20,  width:"100%"}}>
-    {repayVerifField.map((field)=>(
+    {loanVerifField.map((field)=>(
       <View style={{flexDirection:'row', justifyContent:'space-between'}} key={field.id}>
         <Text style={{color: colors.text, ...fonts.bodyHighLight} as TextStyle} >{field.label}</Text>
         <Text style={{color:colors.primary, ...fonts.bodyHighLight} as TextStyle}>{field.value}</Text>
@@ -140,13 +142,11 @@ const Company_RepayLoanScreen= () => {
      
       
         <View style={{justifyContent:'center', alignItems:'center', gap:20, padding:10}}>
-          <Text style={{ ...fonts.bodyHighLight, color: colors.black, textAlign: 'center', width: '100%' } as TextStyle}>Compte de Payment</Text>
+          <Text style={{ ...fonts.bodyHighLight, color: colors.black, textAlign: 'center', width: '100%' } as TextStyle}>Compte de Retrait</Text>
           <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%'}}>
-            <OperatorLogo phoneNumber={account || repayData.company?.phoneNumber!} size={64} />
-            <Text style={{ ...fonts.title } as TextStyle}>{account || repayData.company?.phoneNumber!}</Text>
-            <TouchableOpacity onPress={()=>setShowAccountModifier(true)}>
-              <APP_IMAGES.EMOJI_PEN height={48} width={48}/>
-            </TouchableOpacity>
+            <OperatorLogo phoneNumber={loanData.account} size={64} />
+            <Text style={{ ...fonts.title } as TextStyle}>{loanData.account}</Text>
+
           </View>
         </View>
 
@@ -164,13 +164,15 @@ const Company_RepayLoanScreen= () => {
           alignItems:"center",    
         }}
         disabled={loading}
-        onPress={()=>{          
-          dispatch(loanActions.repayLoanStart({
-          mode:"multiple", 
-          companyId:repayData.company._id,
-          loans_Ids:repayData.loans.map(l=>l._id),
-          repayAccount: account,
-          }))}}>
+        onPress={()=>{  
+          dispatch(loanActions.createLoanStart({
+            employeeId:loanData.employeeId,
+            companyId:loanData.companyId,
+            amount: loanData.amount,
+            account: loanData.account,
+            repayAmount: loanData.amount + (loanData.amount*appPercentage/100)
+          }))        
+          }}>
 
           {!loading?
             <Text style={{color:colors.white,...fonts.title}as TextStyle}>Lancer l'Opération</Text>:
@@ -199,47 +201,6 @@ const Company_RepayLoanScreen= () => {
             <Text style={{color:colors.white,...fonts.title}as TextStyle}>Télécharger le reçu</Text>
             
         </TouchableOpacity>}
-
-        <Modal
-          visible={showAccountModifier}
-          transparent={true}
-          animationType='slide'
-          onRequestClose={()=>setShowAccountModifier(false)}
-        >
-          <View style={modalStyles.modalBackground}>
-            <View style={modalStyles.modalContainer}>
-            <TouchableOpacity onPress={()=>setShowAccountModifier(false)} style={{width:'100%', justifyContent:'flex-end', alignItems:'flex-start', marginBottom:5}}><APP_IMAGES.ICON_CLOSE_MENU width={32} height={32} fill={Color(colors.black).alpha(0.5).toString()}/></TouchableOpacity>
-              <Text style={modalStyles.title}>Modifier le compte de payment</Text>
-              <View style={{...modalStyles.scrollView, gap:10,}}>
-                <View style={{width:'100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomColor: colors.black, borderBottomWidth: 1, height:40, gap:10 }}>
-                  <APP_IMAGES.ICON_CAMEROUN_FLAG height={32} width={32} />
-                  <TextInput keyboardType='phone-pad' value={tempAccount} style={{flex:1, padding:0, backgroundColor:colors.white, color:colors.black}} onChangeText={(value)=>setTemplAccount(value)} />
-                </View>
-
-                <View style={style.flexCenter}>
-                <OperatorLogo phoneNumber={tempAccount!} size={64} />
-                </View>
-                {errorAccount && <Text style={{ color: colors.danger }}>{errorAccount}</Text>}
-                <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap:10,marginBottom:20 }}>
-                  <TouchableOpacity onPress={() => {
-                    setTemplAccount(account);
-                    setShowAccountModifier(false)
-                    setErrorAccount('')
-
-                  }} style={{ backgroundColor: colors.white, borderRadius:10, borderColor:colors.primary, borderWidth:1, padding:10}}>
-                    <Text style={{...fonts.title, color:colors.primary} as TextStyle}>Annuler</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={()=>onChangeAccount(tempAccount!)} style={{ backgroundColor: colors.primary, borderRadius:10, borderColor:colors.primary, borderWidth:1, padding:10}}>
-                    <Text style={{...fonts.title, color:colors.white} as TextStyle}>Modifier</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-
-          </View>
-
-
-          </Modal>
 
         
     

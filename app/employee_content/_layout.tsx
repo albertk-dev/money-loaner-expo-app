@@ -1,14 +1,18 @@
 import CustomDrawerContent from "@/components/Drawer/EmployeeCustomDrawerContent";
 import DrawerHeader from "@/components/Headers/DrawerHeader";
+import RessourceHeader from "@/components/Headers/RessourceHeader";
 import APP_IMAGES from "@/constants/images";
 import { useSelector } from "@/hooks/useSelector";
 import { useAppThemeColor } from "@/hooks/useThemeColor";
+import { loanActions } from "@/redux/loan/loan.slice";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
+import { useDispatch } from "react-redux";
 
 export default function EmployeeRoute() {
   const colors = useAppThemeColor();
   const employee = useSelector((state) => state.employee.employeeInfos);
+  const dispatch = useDispatch()
   return (
     <Drawer
     drawerContent={(props)=>CustomDrawerContent(props)}
@@ -55,6 +59,17 @@ export default function EmployeeRoute() {
              drawerItemStyle: { display: "none" },
              }}
         name="profile"
+      />
+      <Drawer.Screen
+        options={{
+          drawerItemStyle:{display:"none"},
+          header: (d) => <RessourceHeader onBack={()=>{ 
+            dispatch(loanActions.clearCreateData())
+            router.back()
+          }}  
+          appName="Confirmer le pret" colors={colors}/>
+          }}
+        name="confirm_loan"
       />
     </Drawer>
   );

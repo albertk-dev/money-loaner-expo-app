@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Api, IApiAuthHeaders, IAppParams, ICommonHeaders, ICompany, ICreateLoanRequest, ICreateLoanResponse, IDeleteEntityRequest, IDeleteEntityResponse, IEmployee, IFullEmployee, IGetAllCompanyLoansRequest, IGetAllCompanyLoansResponse, IGetAllEmployeesRequest, IGetAllEmployeesResponse, IGetAllLoansOfEmployeeRequest, IGetAllLoansOfEmployeeResponse, ILoan, ILoginCompanyRequestBody, ILoginCompanyResponse, ILoginEmployeeRequestBody, ILoginEmployeeResponse, IRefreshTokenResponse, IRegisterCompanyRequestBody, IRegisterCompanyResponse, IRegisterEmployeeRequestBody, IRegisterEmployeeResponse, IRepayLoanRequest, IRepayLoanResponse, IRepayMultipleLoansRequest, IUpdateCompanyRequest, IUpdateCompanyResponse, IUpdateEmployeeRequest, IUpdateEmployeeResponse, IUpdateLoanParametersRequest, IUpdateLoanParametersResponse, IVerifyEmployeeRequest, IVerifyEmployeeResponse, IVerifyIfEmployeeCanDoLoanRequest, IVerifyIfEmployeeCanDoLoanResponse } from "money-loaner-api-types";
+import { Api, IApiAuthHeaders, IAppParams, ICommonHeaders, ICompany, ICreateLoanRequest, ICreateLoanResponse, IDeleteEntityRequest, IDeleteEntityResponse, IEmployee, IFullEmployee, IGetActivitiesResponse, IGetAllCompanyLoansRequest, IGetAllCompanyLoansResponse, IGetAllEmployeesRequest, IGetAllEmployeesResponse, IGetAllLoansOfEmployeeRequest, IGetAllLoansOfEmployeeResponse, ILoan, ILoginCompanyRequestBody, ILoginCompanyResponse, ILoginEmployeeRequestBody, ILoginEmployeeResponse, IRefreshTokenResponse, IRegisterCompanyRequestBody, IRegisterCompanyResponse, IRegisterEmployeeRequestBody, IRegisterEmployeeResponse, IRepayLoanRequest, IRepayLoanResponse, IRepayMultipleLoansRequest, IUpdateCompanyRequest, IUpdateCompanyResponse, IUpdateEmployeeRequest, IUpdateEmployeeResponse, IUpdateLoanParametersRequest, IUpdateLoanParametersResponse, IVerifyEmployeeRequest, IVerifyEmployeeResponse, IVerifyIfEmployeeCanDoLoanRequest, IVerifyIfEmployeeCanDoLoanResponse } from "money-loaner-api-types";
 import { baseURL } from "./url";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -399,7 +399,7 @@ readonly  _baseURL:string;
             const json: { message: string; error: { name: string; message: string } } = await response.json();
             throw new Error(json.error.message || json.message || 'Failed to fetch data');
         }
-        return response.json();
+        return  response.json();
     }
 
     public async createLoan(data: ICreateLoanRequest): Promise<ICreateLoanResponse> {
@@ -490,6 +490,18 @@ readonly  _baseURL:string;
         } catch (error) {
             console.error('Error getting employee loan:', error);
             throw error;
+        }
+    }
+
+    public async getLastedActivities(companyId: string, number: number = 10) {
+        try{
+            const url = `${this._companyRoute}/${companyId}/activities?number=${number}`;
+            const response = await this.doAuthRequest(url, undefined, 'GET');
+           
+            return await response.json()
+        } catch(error){
+            console.log("connot get activities because : ", error)
+            throw error
         }
     }
 }

@@ -16,6 +16,8 @@ import { useAppThemeColor } from '@/hooks/useThemeColor';
 import { router } from 'expo-router';
 import { IAppColors } from '@/constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ML_API from '@/api';
+import { Ionicons } from '@expo/vector-icons';
 
 
 
@@ -30,12 +32,13 @@ const Company_HomeScreen= () => {
     const styles = customStyles(colors)
 
   const dispatch = useDispatch()
-  const company = useSelector(state => state.company.companyInfos as ICompany);
+  const company = useSelector(state => state.company.companyInfos as ICompany) || ML_API.currentUser;
+  const activities = useSelector(state=> state.company.lastedActivities) || []
 
   useEffect(() => {
     dispatch(authActions.clearAuhtData())
     dispatch(companyActions.getEmployeesrequest({companyId:company._id}))
-  
+    dispatch(companyActions.getActivitiesRequest({companyId: company._id, number:10}))
 },[])
 
   useEffect(() => {
@@ -87,11 +90,33 @@ const Company_HomeScreen= () => {
       
       {/**Le contenu */}
       <ScrollView style={{width:'100%'}} contentContainerStyle={[{...style.page,backgroundColor:Color(colors.background).darken(0.02).toString(), borderRadius:8,width:'100%'}, company.employees?.length === 0 ? styles.content_without_employee: styles.content_with_employee]}>
-   
-        {company.employees?.length !== 0 && 
-          <View>
-            <Text>Rien ici pour le moment</Text>
-          </View>}
+    
+        {company.employees?.length !== 0 &&
+          <View style={{ gap:10,width:'100%'}}>
+            {activities.length === 0 && <Text>Rien ici pour le moment</Text>}
+            {activities.length > 0 && activities.map((act)=>{
+                  return  <View style={{flexDirection:'row', alignItems:'center', justifyContent:"space-between", backgroundColor:colors.background}}>
+                     <View>
+                      <Text>{`${act.type === "loan"?"Pret de ":""}${act.type === "repay"? "Rembourssement de ":""} ${act.amount.toString()} CFA`}</Text>
+                      <Text>{`${new Date(act.date!).toLocaleDateString()} à ${new Date(act.date!).toLocaleTimeString()}`}</Text>
+                     </View>
+                     <TouchableOpacity onPress={()=>{
+                      if(act.type === 'loan'){
+                        router.push("/company_content/gestion_prets")
+                      }
+                      if (act.type === 'repay') {
+                        router.push("/company_content/gestion_prets")
+                      }
+                     }} style={{padding:5}}>
+                      <Text style={{textDecorationLine:"underline", color:colors.primary}}>
+                        Voir plus
+                      </Text>
+                       
+                     </TouchableOpacity>
+                    </View>
+                  })}
+          </View>
+          }
         
         {company.employees?.length === 0 && <View style={{width:250, gap:10,justifyContent:'center', alignItems:'center'}}>
           <Text style={{...fonts.bodyHighLight, color:colors.black, fontSize:20, textAlign:'center'} as TextStyle}>Bienvenue dans Money Loaner 🎉</Text>
@@ -113,6 +138,11 @@ const Company_HomeScreen= () => {
          gap: 5, flexWrap: 'wrap',
          justifyContent: "center", alignItems: 'center', marginBottom: 10
         }}>
+            <TouchableOpacity onPress={()=>{
+                dispatch(companyActions.getActivitiesRequest({companyId: company._id, number:10}))
+          }}>
+            <Ionicons name="refresh-circle" style={{fontSize:32, color:colors.primary}}/>
+          </TouchableOpacity>
           <Text style={{ ...fonts.bodymin, color: 'black' } as any} >Veuillez consulter la </Text>
           <Links.Primary title='politique de confidentialité' onPress={() => Alert.alert('politique de confidentialité...')} />
           <Text style={{ ...fonts.bodymin, color: 'black' } as any} > et les </Text>

@@ -5,7 +5,7 @@ import APP_IMAGES from '../../constants/images';
 import fonts from '../../constants/fonts';
 import Links from '../../components/Links';
 import { useSelector } from '../../hooks/useSelector';
-import { IFullEmployee, } from 'money-loaner-api-types';
+import { IFullEmployee, ILoan, } from 'money-loaner-api-types';
 import Color from 'color';
 import { useDispatch } from 'react-redux';
 import { authActions } from '../../redux/auth/auth.slice';
@@ -21,6 +21,8 @@ import { useAppThemeColor } from '@/hooks/useThemeColor';
 import { router } from 'expo-router';
 import { IAppColors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import ML_API from '@/api';
+import { employeeActions } from '@/redux/employee/employee.slice';
 
 
 
@@ -28,23 +30,25 @@ import { Ionicons } from '@expo/vector-icons';
 
 
 
-
-const { width, height } = Dimensions.get('window');
 
 
 const getPercentage = (percent: number, max: number) => {
   return Math.round(percent/100*max)
 }
 
+
+
+
 const Employee_HomeScreen= () => {
 
     const colors = useAppThemeColor()
     const style = CommonStyle(colors);
     const modalStyles = createModalStyles(colors)
+    const appPercentage = useSelector(state=> state.app.appPercentage)
 
 
   const dispatch = useDispatch()
-  const employee = useSelector(state => state.employee.employeeInfos as IFullEmployee);
+  const employee = useSelector(state => state.employee.employeeInfos as IFullEmployee) || ML_API.currentUser;
   const canDoLoan = useSelector(state => state.loan.employeeCanDoLoan);
   const loansParams = useSelector(state => state.employee.employeeInfos?.companyId.loanParameters)
   const loanLoading = useSelector(state => state.loan.loading);
@@ -60,6 +64,8 @@ const Employee_HomeScreen= () => {
   useEffect(() => {
     dispatch(authActions.clearAuhtData())
     dispatch(loanActions.clearError())
+    const connectedEntity = ML_API.currentUser as IFullEmployee;
+    dispatch(employeeActions.loginEmployeeSuccess(connectedEntity));
     dispatch(loanActions.getAllEmployeeLoansStart({employeeId:employee._id}))
     dispatch(loanActions.verifyEmployee({ employeeId: employee._id }))
     dispatch(loanActions.clearCreateData())
@@ -113,7 +119,19 @@ const Employee_HomeScreen= () => {
 
 
   const handleAskForLoan = (value: number) => {
-  dispatch(loanActions.createLoanStart({employeeId:employee._id, companyId:employee.companyId._id, repayAmount: value + (value*5)/100, amount:value, account:account!}))
+    router.push({
+      pathname: "/employee_content/confirm_loan",
+      params: {
+        data: JSON.stringify({
+          employeeId:employee._id,
+          companyId:employee.companyId._id,
+          repayAmount: value + (value*appPercentage/100) ,
+          amount:value,
+          account:account!
+        })
+      }
+    })
+  // dispatch(loanActions.createLoanStart({employeeId:employee._id, companyId:employee.companyId._id, repayAmount: value + (value*5)/100, amount:value, account:account!}))
 }
 
 
