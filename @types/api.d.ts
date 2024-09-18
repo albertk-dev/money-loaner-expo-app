@@ -39,6 +39,7 @@ declare module 'money-loaner-api-types' {
         companyId: ICompany;
     }
     interface IActivity {
+        _id:string;
         type: "loan"| "repay";
         date?: Date;
         amount: number;

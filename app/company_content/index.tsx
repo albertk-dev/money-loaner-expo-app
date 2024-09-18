@@ -95,7 +95,7 @@ const Company_HomeScreen= () => {
           <View style={{ gap:10,width:'100%'}}>
             {activities.length === 0 && <Text>Rien ici pour le moment</Text>}
             {activities.length > 0 && activities.map((act)=>{
-                  return  <View style={{flexDirection:'row', alignItems:'center', justifyContent:"space-between", backgroundColor:colors.background}}>
+                  return  <View key={act._id} style={{flexDirection:'row', alignItems:'center', justifyContent:"space-between", backgroundColor:colors.background}}>
                      <View>
                       <Text>{`${act.type === "loan"?"Pret de ":""}${act.type === "repay"? "Rembourssement de ":""} ${act.amount.toString()} CFA`}</Text>
                       <Text>{`${new Date(act.date!).toLocaleDateString()} à ${new Date(act.date!).toLocaleTimeString()}`}</Text>
