@@ -16,7 +16,7 @@ import fonts from '../../constants/fonts';
 import APP_IMAGES from '../../constants/images';
 import CommonStyle from '../../styles/common';
 import { useAppThemeColor } from '@/hooks/useThemeColor';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router,  useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from "expo-image-picker";
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { storage } from '@/firebaseConfig';
@@ -59,8 +59,19 @@ const validateSalary = (value:string) => {
 
 const Company_UpdateEmployeeScreen = () => {
 
-    const {employee} = useLocalSearchParams()
-    const employeeToUpdate : EmployeeUpdatable = JSON.parse(employee as string) 
+    const {data} = useLocalSearchParams()
+    const [employeeToUpdate, setEmployeeToUpdate] = useState<EmployeeUpdatable>(JSON.parse(data as string))
+   
+   
+
+
+    useEffect(()=>{
+      if (data) {
+        setEmployeeToUpdate(JSON.parse(data as string))
+      }
+      
+    },[data])
+  
     const colors = useAppThemeColor()
     const style = CommonStyle(colors);
 
@@ -79,6 +90,7 @@ const Company_UpdateEmployeeScreen = () => {
 
   const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
+ 
   const [statusMessage, setStatusMessage] = useState<string>('initialisation...');
 
     const showAlert = (message: string, title:string = "Erreur de validation") => {
@@ -115,9 +127,6 @@ const Company_UpdateEmployeeScreen = () => {
           aspect: [4, 3],
           quality: 1,
         });
-    
-        console.log(result);
-    
         if (!result.canceled) {
             setValue('photoURL', result?.assets[0]?.uri!); // Met à jour la valeur du champ 'image'
               clearErrors('photoURL');
@@ -141,7 +150,7 @@ uploadTask.on(
     (snapshot) => {
       // Calculer la progression en pourcentage
       const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      setStatusMessage(`Upload du logo ${uprogress.toFixed(2)}% terminée`)
+      setStatusMessage(`${uprogress.toFixed(2)}% terminée`)
       setProgress(uprogress / 2)
     },
     (error) => {
@@ -158,6 +167,7 @@ uploadTask.on(
         setStatusMessage('Upload de la photo terminée');
         getDownloadURL(uploadTask.snapshot.ref).then((url)=>{
             setValue('photoURL', url)
+
             const data: UploadEmployeeImageToFirebaseCompleted = { photoCloudPath, photoURL: url }
           return data;
         });
@@ -267,12 +277,14 @@ uploadTask.on(
   
   
   const onUpdateEmployee = async (data: EmployeeUpdatable) => {
+    
     let photoData: UploadEmployeeImageToFirebaseCompleted = {
       photoCloudPath: employeeToUpdate?.photoCloudPath!,
       photoURL: data.photoURL
     }
     if (data.photoURL !== 'none' && !data.photoURL.includes('https://') ) {
-      photoData = await uploadToFirebase(data.name, data.photoURL);
+      await uploadToFirebase(data.name, data.photoURL);
+
     }
    
     const formatedData: Partial<EmployeeUpdatable> = {
@@ -298,10 +310,11 @@ uploadTask.on(
     
         Alert.alert(employeeUpdated, "Employée modifier avec succès", [
           {
-            text: "Ok", onPress: () => {
+            text: "OK", onPress: () => {
               reset()
               dispatch(companyActions.resetUpdatingEmployee())
-              router.back()
+              dispatch(companyActions.getEmployeesrequest({companyId:company._id}))
+              router.push("/company_content/gestion_employee")
           }}
         ]);
        
@@ -329,7 +342,8 @@ uploadTask.on(
                 text: "Oui", onPress: () => {
                   reset()
                   dispatch(companyActions.resetUpdatingEmployee())
-                  router.back()
+                  dispatch(companyActions.getEmployeesrequest({companyId:company._id}))
+                  router.push('/company_content/gestion_employee')
               }}
             ]);
             return true;
@@ -337,14 +351,14 @@ uploadTask.on(
           if (isDirty) {
             backAction()
           } else {
-            router.back()
+            router.push('/company_content/gestion_employee')
           }
           
         }}>
                  <APP_IMAGES.ARROW_BACK_ICON width={32} height={32}  fill={colors.primary}/>
           </TouchableOpacity>
    
-          <Text style={{...fonts.header, fontSize:30, color:colors.primary, flex:1, textAlign:'center'} as any}>Modifier un employé</Text>
+          <Text style={{...fonts.header, fontSize:24, color:colors.primary, flex:1, textAlign:'center'} as any}>Modifier un employé</Text>
         <APP_IMAGES.LOGO width={48} height={44}/>  
         </View>
         <ScrollView style={{width:'100%', flex:1, marginBottom:40, padding:10}} showsVerticalScrollIndicator={false} contentContainerStyle={{width:"100%"}}>

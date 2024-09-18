@@ -112,7 +112,10 @@ const Company_GestionEmployeeScreen = () => {
     {
       text: 'Modifier',
       onClick: (data: IEmployee) => {
-      Alert.alert("Go to ", "Update employee with params")
+        router.push({
+          pathname: '/company_content/update_employee',
+          params: { data:JSON.stringify(data) },
+        });
       },
       available:true,
       

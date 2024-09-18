@@ -51,6 +51,7 @@ const Employee_HomeScreen= () => {
   const employee = useSelector(state => state.employee.employeeInfos as IFullEmployee) || ML_API.currentUser;
   const canDoLoan = useSelector(state => state.loan.employeeCanDoLoan);
   const loansParams = useSelector(state => state.employee.employeeInfos?.companyId.loanParameters)
+
   const loanLoading = useSelector(state => state.loan.loading);
   const loanCreatedSuccess = useSelector(state => state.loan.loanCreatedSuccess);
   const errorCreatedLoan = useSelector(state => state.loan.error);

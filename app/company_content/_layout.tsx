@@ -34,7 +34,7 @@ export default function CompanyRoute() {
         drawerItemStyle:{display:"none"},
        headerShown:false,
         }} />
-      <Drawer.Screen name="update_employee" options={{drawerItemStyle:{display:"none"}}} />
+      <Drawer.Screen name="update_employee" options={{drawerItemStyle:{display:"none"}, headerShown:false}} />
       <Drawer.Screen
        options={{
          title:"Gestion des employés",

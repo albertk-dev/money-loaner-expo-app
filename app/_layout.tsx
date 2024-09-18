@@ -37,7 +37,7 @@ export default function RootLayout() {
       <PersistGate persistor={persistor}>
   <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
     <SafeAreaView style={{ flex: 1 }}>
-       <Stack>
+       <Stack initialRouteName='index'>
         <Stack.Screen options={{headerShown:false}} name="index"/>
         <Stack.Screen options={{headerShown:false}}  name="choose_entity"/>
         <Stack.Screen options={{headerShown:false}}   name='company_auth'/>
