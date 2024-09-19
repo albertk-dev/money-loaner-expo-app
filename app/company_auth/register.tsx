@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
-import React, { useState } from 'react';
-import { Text, View, TouchableWithoutFeedback, Keyboard, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, View, TouchableWithoutFeedback, Keyboard, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { KeyboardAccessoryView } from "react-native-keyboard-accessory";
 import { useForm, Controller } from 'react-hook-form';
 import * as ImagePicker from 'expo-image-picker';
-import {storage} from '../../firebaseConfig'
-import {getDownloadURL, ref, uploadBytesResumable} from 'firebase/storage'
+import { storage } from '../../firebaseConfig'
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import fonts from '../../constants/fonts';
 import APP_IMAGES from '../../constants/images';
 import Buttons from '../../components/Buttons';
@@ -14,7 +14,7 @@ import Links from '../../components/Links';
 import TextFields from '../../components/TextField';
 import CustomAlert from '../../components/CustomAlert';
 import CustomStatusBar from '../../components/CustomStatusBar';
-import {  IRegisterCompanyRequestBody } from 'money-loaner-api-types';
+import { IRegisterCompanyRequestBody } from 'money-loaner-api-types';
 import ML_API from '../../api';
 import { useAppThemeColor } from '@/hooks/useThemeColor';
 import { router } from 'expo-router';
@@ -51,41 +51,39 @@ const Company_RegisterCompanyScreen = () => {
     const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
     const [statusMessage, setStatusMessage] = useState<string>('initialisation...');
-    
-    const uploadToFirebase = async (companyName : string,imageURI:string): Promise<any> => {
-      
+    const [uploadTofirebaseCompleted, setUploadToFirebaseCompleted] = useState<UploadToFirebaseCompleted>({ logoCloudImagePath: "", logoURL: "" })
+
+    const uploadToFirebase = async (companyName: string, imageURI: string): Promise<UploadToFirebaseCompleted> => {
         const imageName = `logo/${Date.now()}_${companyName}`;
         const reference = ref(storage, imageName);
-        // Convertir l'image en un blob
-    const response = await fetch(imageURI);
-    const blob = await response.blob();
-
-   const uploadTask = uploadBytesResumable(reference, blob)
-
-    uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          // Calculer la progression en pourcentage
-          const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setStatusMessage(`Upload du logo ${uprogress.toFixed(2)}% terminée`)
-          setProgress(uprogress / 2)
-        },
-        (error) => {
-          // Gérer les erreurs ici
-          console.error('Error uploading image: ', error);
-              setStatusMessage('Upload failed!');
-              throw error
-        },
-        () => {
-          // Gérer le succès complet ici
-          setStatusMessage('Upload du logo terminée');
-            getDownloadURL(uploadTask.snapshot.ref).then((url)=>{
-                const data: UploadToFirebaseCompleted = { logoCloudImagePath: imageName, logoURL: url }
-              return data;
-            });
-        }
-      );
-      };
+        
+        const response = await fetch(imageURI);
+        const blob = await response.blob();
+    
+        return new Promise((resolve, reject) => {
+            const uploadTask = uploadBytesResumable(reference, blob);
+    
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setStatusMessage(`Upload du logo ${uprogress.toFixed(2)}% terminé`);
+                    setProgress(uprogress / 2);
+                },
+                (error) => {
+                    console.error('Error uploading image: ', error);
+                    setStatusMessage('Upload failed!');
+                    reject(error);
+                },
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    const data: UploadToFirebaseCompleted = { logoCloudImagePath: imageName, logoURL: url };
+                    setUploadToFirebaseCompleted(data);
+                    resolve(data); // On renvoie les données ici
+                }
+            );
+        });
+    };
 
     const { control, handleSubmit, formState: { errors, isSubmitting, isDirty }, setValue, watch, clearErrors, trigger } = useForm<CompanyRegisterFormData>();
 
@@ -95,7 +93,7 @@ const Company_RegisterCompanyScreen = () => {
     const [alertMessage, setAlertMessage] = useState('');
 
 
-    const showAlert = (message: string, title:string = "Erreur de validation") => {
+    const showAlert = (message: string, title: string = "Erreur de validation") => {
         setAlertMessage(message);
         setAlertVisible(true);
         setAlertTitle(title)
@@ -108,20 +106,26 @@ const Company_RegisterCompanyScreen = () => {
     const pickImage = async () => {
         // No permissions request is necessary for launching the image library
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
         });
-    
-        console.log(result);
-    
+
         if (!result.canceled) {
             setImage(result?.assets[0]?.uri!);
             setValue('companyLogo', result?.assets[0]?.uri!); // Met à jour la valeur du champ 'image'
             clearErrors('companyLogo');
         }
-      };
+    };
+
+
+    useEffect(()=>{
+        if (uploadTofirebaseCompleted.logoCloudImagePath && uploadTofirebaseCompleted.logoURL) {
+
+        }
+
+    },[uploadTofirebaseCompleted])
 
     const removeImage = () => {
         setImage(null);
@@ -129,11 +133,14 @@ const Company_RegisterCompanyScreen = () => {
         trigger('companyLogo');
     };
 
+    
+    
     const onSubmit = async (data: CompanyRegisterFormData) => {
         try {
-            setIsOperationInProgress(true)
-            const logoInfo:UploadToFirebaseCompleted = await uploadToFirebase(data.companyName, data.companyLogo!);
-            setStatusMessage("formatage des données...")
+            setIsOperationInProgress(true);
+            const logoInfo = await uploadToFirebase(data.companyName, data.companyLogo!); // Attendre la fin de l'upload et récupérer les infos du logo
+    
+            setStatusMessage("Formatage des données...");
             const companyFormatedData: IRegisterCompanyRequestBody = {
                 name: data.companyName,
                 logoURL: logoInfo.logoURL,
@@ -142,39 +149,37 @@ const Company_RegisterCompanyScreen = () => {
                 password: data.password,
                 socialId: `${data.companyName}_${Date.now()}`
             };
-            setProgress((progress)=> progress+10 )
-            setStatusMessage("enregistrement de l'entreprise...")
+    
+            setProgress((progress) => progress + 10);
+            setStatusMessage("Enregistrement de l'entreprise...");
             const company = await ML_API.registerCompany(companyFormatedData);
-            setProgress(100)
-            setStatusMessage("terminée")
+            setProgress(100);
+            setStatusMessage("Terminé");
             setProgress(0);
             setStatusMessage('');
-            setIsOperationInProgress(false)
+            setIsOperationInProgress(false);
+    
             showAlert(company.message, data.companyName);
-
+    
             // Simule un processus de soumission
             await new Promise(resolve => setTimeout(resolve, 100));
-            
-            //lancer le login direct
-            
+    
+            // Redirection après inscription
             router.push({
-                pathname:'/company_auth/login_after_register',
-                params:{
-                    email:data.companyEmail,
-                    password:data.password,
-                    logoURL:logoInfo.logoURL,
+                pathname: '/company_auth/login_after_register',
+                params: {
+                    email: data.companyEmail,
+                    password: data.password,
+                    logoURL: logoInfo.logoURL,
                     name: data.companyName
                 }
-            })
-
+            });
         } catch (error) {
             console.error(error);
-            
-            setStatusMessage("echec lors de l'enregistrement...")
-             // Simule un processus de soumission
-             await new Promise(resolve => setTimeout(resolve, 3000));
-            setIsOperationInProgress(false)
-            showAlert(`Echec d'enregistrement ${error}`, data.companyName)
+            setStatusMessage("Échec lors de l'enregistrement...");
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            setIsOperationInProgress(false);
+            showAlert(`Échec d'enregistrement: ${error}`, data.companyName);
         }
     };
 
@@ -182,9 +187,9 @@ const Company_RegisterCompanyScreen = () => {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <SafeAreaView style={{ flex: 1,gap:20 }}>
+            <SafeAreaView style={{ flex: 1, gap: 20 }}>
 
-                <ScrollView contentContainerStyle={{ ...style.page, flex: 0, flexGrow: 1, gap:20, flexShrink: 0, marginBottom: isOperationInProgress?60:20 }}>
+                <ScrollView contentContainerStyle={{ ...style.page, flex: 0, flexGrow: 1, gap: 20, flexShrink: 0, marginBottom: isOperationInProgress ? 60 : 20 }}>
 
                     <View style={style.Headerblock}>
                         <APP_IMAGES.LOGO width={48} height={54} />
@@ -221,7 +226,7 @@ const Company_RegisterCompanyScreen = () => {
                         )}
                     />
 
-                    <View style={{ gap: 20, marginBottom: 20, flex:1, justifyContent:'center' }}>
+                    <View style={{ gap: 20, marginBottom: 20, flex: 1, justifyContent: 'center' }}>
                         <Controller
                             control={control}
                             name="companyName"
@@ -254,7 +259,7 @@ const Company_RegisterCompanyScreen = () => {
                                     onChange={onChange}
                                     onBlur={onBlur}
                                     value={value}
-                                    textInputProps={{keyboardType:'email-address',autoCapitalize:'none', autoCorrect:false}}
+                                    textInputProps={{ keyboardType: 'email-address', autoCapitalize: 'none', autoCorrect: false }}
                                     error={errors.companyEmail && errors.companyEmail.message}
                                 />
                             )}
@@ -305,13 +310,13 @@ const Company_RegisterCompanyScreen = () => {
                         type='error'
                     />
                 </ScrollView>
-     
+
                 <KeyboardAccessoryView style={{ paddingVertical: 5, marginBottom: 20, height: 'auto' }} alwaysVisible={true} androidAdjustResize>
                     {({ isKeyboardVisible }) => (
                         <View style={{ gap: 10, justifyContent: 'center', alignItems: 'center' }}>
-                           
-                                <Buttons.Primary title="S'enregistrer" disabled={!isDirty} isLoading={isSubmitting} onPress={handleSubmit(onSubmit)} />
-                            
+
+                            <Buttons.Primary title="S'enregistrer" disabled={!isDirty} isLoading={isSubmitting} onPress={handleSubmit(onSubmit)} />
+
 
                             {!isKeyboardVisible && (
                                 <View style={{ display: 'flex', flexDirection: 'row', gap: 5 }}>
@@ -319,9 +324,9 @@ const Company_RegisterCompanyScreen = () => {
                                     <Links.Primary title='Connectez-vous' onPress={() => router.push("/company_auth/")} />
                                 </View>
                             )}
-                                       {isOperationInProgress && (
-        <CustomStatusBar progress={progress} statusMessage={statusMessage} />
-      )}
+                            {isOperationInProgress && (
+                                <CustomStatusBar progress={progress} statusMessage={statusMessage} />
+                            )}
 
                         </View>
                     )}
