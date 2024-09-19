@@ -23,261 +23,213 @@ import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { storage } from '@/firebaseConfig';
 
 type ProfileField = {
-    name: keyof EmployeeUpdatable;
-    label: string;
-    required?: boolean;
-    rhfRules?: any;
+  name: keyof EmployeeUpdatable;
+  label: string;
+  required?: boolean;
+  rhfRules?: any;
   canEdit?: boolean | true;
-    startIcon?: React.FC<SvgProps>;
-    endIcon?: React.FC<SvgProps>;
-    startIconProps?: SvgProps;
-    endIconProps?: SvgProps;
-    textInputProps?: TextInputProps;
-    helperText?: string;
-    placeHolder?: string;
-  
-  }
+  startIcon?: React.FC<SvgProps>;
+  endIcon?: React.FC<SvgProps>;
+  startIconProps?: SvgProps;
+  endIconProps?: SvgProps;
+  textInputProps?: TextInputProps;
+  helperText?: string;
+  placeHolder?: string;
+}
 
 type EmployeeUpdatable = Omit<IEmployee,'_id' | 'codePin' | 'updatedAt' | "employees">
-
 
 type UploadEmployeeImageToFirebaseCompleted = {
   photoCloudPath: string;
   photoURL: string;
 }
 
-const validateSalary = (value:string) => {
+const validateSalary = (value: string) => {
   if (isNaN(Number(value))) {
-    return("Le salaire doit etre un nombre")
+    return "Le salaire doit être un nombre";
   }
   if (Number(value) % 50 !== 0) {
-    return("Le salaire doit etre un multiple de 50")
+    return "Le salaire doit être un multiple de 50";
   }
-  return true
+  return true;
 }
 
-
 const Company_AddEmployeeScreen = () => {
-
   const company = useSelector(state => state.company.companyInfos as ICompany);
   const addingEmployee = useSelector(state => state.company.addingEmployee);
   const addEmployeeSuccess = useSelector(state => state.company.addEmployeeSuccess);
   const addEmployeeErrorMsg = useSelector(state => state.company.errorAddingEmployee);
-  const [employeeAdded, setEmployeeAdded] = useState<string>("")
+  const [employeeAdded, setEmployeeAdded] = useState<string>("");
 
-
-  const colors = useAppThemeColor()
+  const colors = useAppThemeColor();
   const style = CommonStyle(colors);
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertTitle, setAlertTitle] = useState("")
-
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState('');
-
   const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-  const [statusMessage, setStatusMessage] = useState<string>('initialisation...');
+  const [statusMessage, setStatusMessage] = useState<string>('Initialisation...');
 
-    const showAlert = (message: string, title:string = "Erreur de validation") => {
-        setAlertMessage(message);
-        setAlertVisible(true);
-        setAlertTitle(title)
-    };
+  const showAlert = (message: string, title: string = "Erreur de validation") => {
+    setAlertMessage(message);
+    setAlertVisible(true);
+    setAlertTitle(title);
+  };
 
-    const closeAlert = () => {
-        setAlertVisible(false);
-    };
+  const closeAlert = () => {
+    setAlertVisible(false);
+  };
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   
-    const { control, handleSubmit, formState: { errors, isDirty, isSubmitting}, setValue, clearErrors, reset, trigger } = useForm<EmployeeUpdatable>({
-        defaultValues: {
-        companyId: company._id,
-        photoURL:'none',
-      }
+  const { control, handleSubmit, formState: { errors, isDirty, isSubmitting }, setValue, clearErrors, reset, trigger } = useForm<EmployeeUpdatable>({
+    defaultValues: {
+      companyId: company._id,
+      photoURL: 'none',
+    }
+  });
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 4],
+      quality: 1,
     });
-    
-    const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
-        });
-    
-        console.log(result);
-    
-        if (!result.canceled) {
-            setValue('photoURL', result?.assets[0]?.uri!); // Met à jour la valeur du champ 'image'
-              clearErrors('photoURL');
-        }
-      };
-  
+    if (!result.canceled) {
+      setValue('photoURL', result?.assets[0]?.uri!);
+      clearErrors('photoURL');
+    }
+  };
 
-
-      const uploadToFirebase = async (EmployeeName:string, photoURI:string): Promise<any> => {
-        setIsOperationInProgress(true)
-        const imageName = `${company.name}/employees/${Date.now()}_${EmployeeName}`;
-        const reference = ref(storage, imageName);
-        // Convertir l'image en un blob
+  const uploadToFirebase = async (EmployeeName: string, photoURI: string): Promise<any> => {
+    setIsOperationInProgress(true);
+    const imageName = `${company.name}/employees/${Date.now()}_${EmployeeName}`;
+    const reference = ref(storage, imageName);
     const response = await fetch(photoURI);
     const blob = await response.blob();
+
+    const uploadTask = uploadBytesResumable(reference, blob);
     
-    const uploadTask = uploadBytesResumable(reference, blob)
-    
-    uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          // Calculer la progression en pourcentage
-          const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setStatusMessage(`Upload du logo ${uprogress.toFixed(2)}% terminée`)
-          setProgress(uprogress / 2)
+    return new Promise((resolve, reject) => {
+      uploadTask.on('state_changed', (snapshot) => {
+        const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setStatusMessage(`Upload de la photo à ${uprogress.toFixed(2)}%`);
+        setProgress(uprogress / 2);
+      }, (error) => {
+        setStatusMessage('Échec du téléchargement');
+        reject(error);
+      }, () => {
+        setStatusMessage('Téléchargement terminé');
+        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+          setValue('photoURL', url);
+          resolve({ photoCloudPath: imageName, photoURL: url });
+        });
+      });
+    });
+  };
+
+  const removeImage = () => {
+    setValue("photoURL", '');
+    trigger('photoURL');
+  };
+
+  const profileMenuTextFiledsData = React.useMemo(() => {
+    const companyProfileItems: Array<ProfileField> = [
+      {
+        name: 'name',
+        label: 'Nom Complet',
+        helperText: "Entrez le nom et le prénom de l'employé",
+        required: true,
+        rhfRules: { required: 'Ce champ est requis' },
+        canEdit: true,
+        startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_NAME,
+        textInputProps: { autoCapitalize: 'characters', autoCorrect: false }
+      },
+      {
+        name: 'inCompanyId',
+        label: "Identifiant unique dans l'entreprise",
+        required: true,
+        rhfRules: { required: 'Ce champ est requis' },
+        helperText: "Matricule ou numéro de CNI",
+        startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_IN_COMPANY_ID,
+      },
+      {
+        name: 'job',
+        label: "Poste Occupé",
+        required: true,
+        rhfRules: { required: 'Ce champ est requis' },
+        helperText: "Poste occupé",
+        startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_JOB,
+        textInputProps: { autoCapitalize: 'words', autoCorrect: false }
+      },
+      {
+        name: 'salary',
+        label: "Salaire",
+        required: true,
+        rhfRules: {
+          required: 'Ce champ est requis',
+          validate: validateSalary
         },
-        (error) => {
-          // Gérer les erreurs ici
-          console.error('Error uploading image: ', error);
-              setStatusMessage('Upload failed!');
-              throw error
+        helperText: "Salaire permettant de définir le montant maximal de prêt",
+        startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_SALARY,
+        textInputProps: { keyboardType: 'numeric', autoCapitalize: 'none', autoCorrect: false }
+      },
+      {
+        name: 'phoneNumber',
+        label: "Téléphone",
+        required: true,
+        rhfRules: {
+          required: 'Ce champ est requis',
+          pattern: { value: cameroonPhoneRegex, message: 'Numéro invalide' }
         },
-        () => {
-          // Gérer le succès complet ici
-        
-          
-            setIsOperationInProgress(false)
-            setStatusMessage('Upload de la photo terminée');
-            getDownloadURL(uploadTask.snapshot.ref).then((url)=>{
-                setValue('photoURL', url)
-                const data: UploadEmployeeImageToFirebaseCompleted = { photoCloudPath:imageName, photoURL: url }
-              return data;
-            });
-        }
-      );
-      }; 
+        placeHolder: 'Numéro de téléphone',
+        helperText: "Numéro utilisé pour les notifications",
+        startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_PHONE_NUMBER,
+        textInputProps: { keyboardType: 'number-pad', autoCapitalize: 'none', autoCorrect: false }
+      },
+      {
+        name: 'email',
+        label: 'Email',
+        required: true,
+        rhfRules: {
+          required: 'Ce champ est requis',
+          pattern: { value: emailRegex, message: 'Email invalide' }
+        },
+        helperText: "Adresse pour les notifications",
+        startIcon: APP_IMAGES.ICON_EMAIL_FIELD,
+        textInputProps: { keyboardType: 'email-address', autoCapitalize: 'none', autoCorrect: false }
+      }
+    ];
+    return companyProfileItems;
+  }, []);
 
-    const removeImage = () => {
-        setValue("photoURL", '');
-        trigger('photoURL');
-    };
-
-    const profileMenuTextFiledsData = React.useMemo(() => {
-        const companyProfileItems:Array<ProfileField> = [
-          {
-            name: 'name',
-            label: 'Nom Complet',
-            helperText:"entrer le nom et le prénom de l'employé",
-            required: true,
-            rhfRules:{
-              required: 'Ce champ est requis',
-          },
-            canEdit:true,
-                startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_NAME,
-            startIconProps: { fillOpacity: 0 },
-            textInputProps:{autoCapitalize:'characters', autoCorrect:false}
-          
-            },
-            {
-                name: 'inCompanyId',
-                label: "Identifiant unique dans l'entreprise",
-                canEdit: true,
-              required: true,
-              rhfRules:{
-                required: 'Ce champ est requis',
-            },
-                helperText: "il peut s'agir d'un matricule ou du numéro de CNI..toutes choses qui identifie de facon unique cet employé dans l'entreprise",
-                startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_IN_COMPANY_ID,
-              },
-          {
-            name: 'job',
-            label: "Poste Occupé",
-            canEdit: true,
-            required: true,
-            rhfRules:{
-              required: 'Ce champ est requis',
-          },
-            helperText: "Le poste occupé par cet employé dans l'entreprise",
-            startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_JOB,
-            startIconProps: { fillOpacity: 1 },
-            textInputProps:{autoCapitalize:'words', autoCorrect:false}
-           
-         
-            },
-            {
-                name:'salary',
-                label: "Salaire",
-                canEdit: true,
-              required: true,
-
-              rhfRules:{
-                required: 'Ce champ est requis',
-                validate: validateSalary
-            },
-                helperText: "Entrez le salaire de votre employé, ceci permettra de définir par la suite le montant exact que celui-ci peut emprunté",
-              startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_SALARY,
-              textInputProps:{keyboardType:'numeric',autoCapitalize:'none', autoCorrect:false}
-              },
-          
-          {
-            name: 'phoneNumber',
-            label: "Téléphone",
-            canEdit: true,
-            required: true,
-            rhfRules:{
-              required: 'Ce champ est requis',
-              pattern: { value: cameroonPhoneRegex, message: 'Ce numéro de téléphone n\'est pas camerounais' },
-          },
-            placeHolder:'numéro de téléphone',
-            helperText: "il s'agit du numéro de téléphone de l'employé, il sera  proposer par défaut lors des demandes de pret",
-            startIcon: APP_IMAGES.ICON_FIELD_EMPLOYEE_PHONE_NUMBER,
-            textInputProps:{keyboardType:'number-pad',autoCapitalize:'none', autoCorrect:false}
-          },
-          {
-            name: 'email',
-            label: 'Email',
-            rhfRules:{
-              required: 'Ce champ est requis',
-              pattern: { value: emailRegex, message: 'Email invalide' },
-          },
-            canEdit:true,
-            required: true,
-            helperText: "entre l'adresse email de l'entreprise ou celui de son représentant, des notification y seront envoyés",
-            startIcon: APP_IMAGES.ICON_EMAIL_FIELD,
-            textInputProps:{keyboardType:'email-address',autoCapitalize:'none', autoCorrect:false}
-          },
-         
-         
-       
-    
-        ]
-    
-        return companyProfileItems
-      },[])
- 
-  
-  
   const onAddEmployee = async (data: EmployeeUpdatable) => {
-    let photoData: UploadEmployeeImageToFirebaseCompleted = {
+    let photoData = {
       photoCloudPath: `${company.name}/employees/${Date.now()}_${data.name}`,
       photoURL: data.photoURL
-    }
+    };
+
     if (data.photoURL !== 'none') {
       photoData = await uploadToFirebase(data.name, data.photoURL);
     }
-   
-    const formatedData: Partial<EmployeeUpdatable> = {
+
+    const formattedData: Partial<EmployeeUpdatable> = {
       name: data.name.trim(),
       email: data.email.trim(),
       phoneNumber: data.phoneNumber,
-      photoCloudPath: `${company.name}/employees/${Date.now()}_${data.name}`,
+      photoCloudPath: photoData.photoCloudPath,
       photoURL: photoData.photoURL,
       salary: data.salary.trim(),
       job: data.job.trim(),
       inCompanyId: data.inCompanyId?.trim(),
-      companyId:company._id,
-    }
-    setEmployeeAdded(data.name)
-    
-    dispatch(companyActions.addEmployeeRequest(formatedData))
-  }
+      companyId: company._id
+    };
+
+    setEmployeeAdded(data.name);
+    dispatch(companyActions.addEmployeeRequest(formattedData));
+  };
+
 
 
   useEffect(() => {

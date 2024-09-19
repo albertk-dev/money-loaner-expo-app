@@ -104,20 +104,15 @@ const Employee_ProfileScreen = () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [4, 4],
       quality: 1,
     });
-
-    console.log(result);
 
     if (!result.canceled) {
         setValue('photoURL', result?.assets[0]?.uri!); // Met à jour la valeur du champ 'image'
           clearErrors('photoURL');
     }
   };
-
-
-
 
   const profileMenuTextFiledsData = React.useMemo(() => {
     const companyProfileItems: Array<ProfileField> = [
@@ -224,10 +219,6 @@ const Employee_ProfileScreen = () => {
     return companyProfileItems
   }, [])
 
-
-
-
-
   useEffect(() => {
     reset({
       name: employee.name,
@@ -254,88 +245,87 @@ const Employee_ProfileScreen = () => {
     }
   }, [updateEmployeeSuccess, updatingEmployeeErrorMessage])
 
-  const uploadToFirebase = async (photoCloudPath : string,imageURI:string): Promise<any> => {
-    setIsOperationInProgress(true)
-      
-    
+  const uploadToFirebase = async (photoCloudPath: string, imageURI: string): Promise<UploadEmployeeImageToFirebaseCompleted> => {
+    setIsOperationInProgress(true);
+  
     const reference = ref(storage, photoCloudPath);
     // Convertir l'image en un blob
-const response = await fetch(imageURI);
-const blob = await response.blob();
-
-const uploadTask = uploadBytesResumable(reference, blob)
-
-uploadTask.on(
-    'state_changed',
-    (snapshot) => {
-      // Calculer la progression en pourcentage
-      const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      setStatusMessage(`Upload du logo ${uprogress.toFixed(2)}% terminée`)
-      setProgress(uprogress / 2)
-    },
-    (error) => {
-      // Gérer les erreurs ici
-      console.error('Error uploading image: ', error);
+    const response = await fetch(imageURI);
+    const blob = await response.blob();
+  
+    const uploadTask = uploadBytesResumable(reference, blob);
+  
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          // Calculer la progression en pourcentage
+          const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setStatusMessage(`Upload de la photo ${uprogress.toFixed(2)}% terminée`);
+          setProgress(uprogress / 2);
+        },
+        (error) => {
+          // Gérer les erreurs ici
+          console.error('Error uploading image: ', error);
           setStatusMessage('Upload failed!');
-          throw error
-    },
-    () => {
-      // Gérer le succès complet ici
-    
-      
-        setIsOperationInProgress(false)
-        setStatusMessage('Upload de la photo terminée');
-        getDownloadURL(uploadTask.snapshot.ref).then((url)=>{
-            setValue('photoURL', url)
-            const data: UploadEmployeeImageToFirebaseCompleted = { photoCloudPath, photoURL: url }
-          return data;
-        });
-    }
-  );
+          setIsOperationInProgress(false);
+          reject(error);
+        },
+        () => {
+          // Gérer le succès complet ici
+          setIsOperationInProgress(false);
+          setStatusMessage('Upload de la photo terminée');
+          getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+            setValue('photoURL', url);
+            const data: UploadEmployeeImageToFirebaseCompleted = {
+              photoCloudPath,
+              photoURL: url,
+            };
+            resolve(data);
+          }).catch((error) => {
+            reject(error);
+          });
+        }
+      );
+    });
   };
-
-
-
+  
   const onUpdate = async (data: EmployeeUpdatable) => {
     try {
-
       let photoData: UploadEmployeeImageToFirebaseCompleted = {
         photoCloudPath: employee.photoCloudPath!,
         photoURL: data.photoURL,
-      }
-      if (data.photoURL !== 'none' && !data.photoURL.includes('https://') ) {
+      };
+  
+      if (data.photoURL !== 'none' && !data.photoURL.includes('https://')) {
+        // Attendre que l'upload soit terminé et récupérer les informations
         photoData = await uploadToFirebase(data.name, data.photoURL);
       }
-     
+  
       const formatedData: Partial<EmployeeUpdatable> = {
         name: data.name.trim(),
         email: data.email.trim(),
         phoneNumber: data.phoneNumber,
-        photoCloudPath: employee?.photoCloudPath,
+        photoCloudPath: photoData.photoCloudPath,
         photoURL: photoData.photoURL,
         salary: data.salary.trim(),
         job: data.job.trim(),
         inCompanyId: data.inCompanyId?.trim(),
         companyId: data.companyId,
-     
-       
-      }
+      };
+  
       const updateFormatedData: IUpdateEmployeeRequest = {
         id: data._id,
         data: formatedData,
-
-
-      }
-
-      dispatch(employeeActions.updateEmployeeRequest(updateFormatedData))
-
-
+      };
+  
+      dispatch(employeeActions.updateEmployeeRequest(updateFormatedData));
     } catch (error) {
       console.error(error);
-
-      showAlert(`Echec de mis à jour ${error}`, employee.name);
+      showAlert(`Echec de mise à jour ${error}`, employee.name);
     }
   };
+  
 
 
 

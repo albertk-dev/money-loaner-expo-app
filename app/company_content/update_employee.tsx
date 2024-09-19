@@ -124,7 +124,7 @@ const Company_UpdateEmployeeScreen = () => {
         let result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
-          aspect: [4, 3],
+          aspect: [4, 4],
           quality: 1,
         });
         if (!result.canceled) {
@@ -135,45 +135,6 @@ const Company_UpdateEmployeeScreen = () => {
     
   
 
-const uploadToFirebase = async (photoCloudPath : string,imageURI:string): Promise<any> => {
-    setIsOperationInProgress(true)
-      
-    const reference = ref(storage, photoCloudPath);
-    // Convertir l'image en un blob
-const response = await fetch(imageURI);
-const blob = await response.blob();
-
-const uploadTask = uploadBytesResumable(reference, blob)
-
-uploadTask.on(
-    'state_changed',
-    (snapshot) => {
-      // Calculer la progression en pourcentage
-      const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      setStatusMessage(`${uprogress.toFixed(2)}% terminée`)
-      setProgress(uprogress / 2)
-    },
-    (error) => {
-      // Gérer les erreurs ici
-      console.error('Error uploading image: ', error);
-          setStatusMessage('Upload failed!');
-          throw error
-    },
-    () => {
-      // Gérer le succès complet ici
-    
-      
-        setIsOperationInProgress(false)
-        setStatusMessage('Upload de la photo terminée');
-        getDownloadURL(uploadTask.snapshot.ref).then((url)=>{
-            setValue('photoURL', url)
-
-            const data: UploadEmployeeImageToFirebaseCompleted = { photoCloudPath, photoURL: url }
-          return data;
-        });
-    }
-  );
-  };
 
 
     const removeImage = () => {
@@ -276,33 +237,82 @@ uploadTask.on(
  
   
   
-  const onUpdateEmployee = async (data: EmployeeUpdatable) => {
+      const uploadToFirebase = async (photoCloudPath: string, imageURI: string): Promise<UploadEmployeeImageToFirebaseCompleted> => {
+        setIsOperationInProgress(true);
     
-    let photoData: UploadEmployeeImageToFirebaseCompleted = {
-      photoCloudPath: employeeToUpdate?.photoCloudPath!,
-      photoURL: data.photoURL
-    }
-    if (data.photoURL !== 'none' && !data.photoURL.includes('https://') ) {
-      await uploadToFirebase(data.name, data.photoURL);
-
-    }
-   
-    const formatedData: Partial<EmployeeUpdatable> = {
-      name: data.name.trim(),
-      email: data.email.trim(),
-      phoneNumber: data.phoneNumber,
-      photoCloudPath: employeeToUpdate?.photoCloudPath,
-      photoURL: photoData.photoURL,
-      salary: data.salary.trim(),
-      job: data.job.trim(),
-      inCompanyId: data.inCompanyId?.trim(),
-      companyId:company._id,
-    }
-    setEmployeeUpdated(data.name)
+        const reference = ref(storage, photoCloudPath);
     
-    dispatch(companyActions.updateEmployeeRequest({id:employeeToUpdate?._id! , data: formatedData}))
-  }
-
+        // Convertir l'image en un blob
+        const response = await fetch(imageURI);
+        const blob = await response.blob();
+    
+        const uploadTask = uploadBytesResumable(reference, blob);
+    
+        return new Promise((resolve, reject) => {
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    // Calculer la progression en pourcentage
+                    const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setStatusMessage(`${uprogress.toFixed(2)}% terminée`);
+                    setProgress(uprogress / 2);
+                },
+                (error) => {
+                    // Gérer les erreurs ici
+                    console.error('Error uploading image: ', error);
+                    setStatusMessage('Upload failed!');
+                    setIsOperationInProgress(false);
+                    reject(error);
+                },
+                () => {
+                    // Upload réussi
+                    getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                        setIsOperationInProgress(false);
+                        setStatusMessage('Upload de la photo terminée');
+                        setValue('photoURL', url);
+    
+                        const data: UploadEmployeeImageToFirebaseCompleted = { 
+                            photoCloudPath, 
+                            photoURL: url 
+                        };
+                        resolve(data);
+                    }).catch((error) => {
+                        setIsOperationInProgress(false);
+                        reject(error);
+                    });
+                }
+            );
+        });
+    };
+    
+    const onUpdateEmployee = async (data: EmployeeUpdatable) => {
+        let photoData: UploadEmployeeImageToFirebaseCompleted = {
+            photoCloudPath: employeeToUpdate?.photoCloudPath!,
+            photoURL: data.photoURL
+        };
+    
+        if (data.photoURL !== 'none' && !data.photoURL.includes('https://')) {
+            // Attendre que l'upload soit terminé et récupérer les informations
+            photoData = await uploadToFirebase(data.name, data.photoURL);
+        }
+    
+        const formatedData: Partial<EmployeeUpdatable> = {
+            name: data.name.trim(),
+            email: data.email.trim(),
+            phoneNumber: data.phoneNumber,
+            photoCloudPath: photoData.photoCloudPath,
+            photoURL: photoData.photoURL,
+            salary: data.salary.trim(),
+            job: data.job.trim(),
+            inCompanyId: data.inCompanyId?.trim(),
+            companyId: company._id,
+        };
+    
+        setEmployeeUpdated(data.name);
+    
+        dispatch(companyActions.updateEmployeeRequest({ id: employeeToUpdate?._id!, data: formatedData }));
+    };
+    
 
   useEffect(() => {
     if (updateEmployeeSuccess) {

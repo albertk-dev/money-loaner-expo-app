@@ -129,7 +129,7 @@ const Company_ProfileScreen = () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [4, 4],
       quality: 1,
     });
 
@@ -260,67 +260,81 @@ const Company_ProfileScreen = () => {
     }
   }, [updatingCompanySuccess, updatingCompanyErrorMessage]);
 
-  const uploadToFirebase = async (logoURI: string): Promise<any> => {
+  const uploadToFirebase = async (logoURI: string): Promise<UploadToFirebaseCompleted> => {
     setIsOperationInProgress(true);
-
+  
     const reference = ref(storage, company.logoCloudImagePath);
     // Convertir l'image en un blob
     const response = await fetch(logoURI);
     const blob = await response.blob();
-
+  
     const uploadTask = uploadBytesResumable(reference, blob);
-
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        // Calculer la progression en pourcentage
-        const uprogress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setStatusMessage(`Upload du logo ${uprogress.toFixed(2)}% terminée`);
-        setProgress(uprogress / 2);
-      },
-      (error) => {
-        // Gérer les erreurs ici
-        console.error("Error uploading image: ", error);
-        setStatusMessage("Upload failed!");
-        throw error;
-      },
-      () => {
-        // Gérer le succès complet ici
-
-        setStatusMessage("Upload du logo terminée");
-        setIsOperationInProgress(false);
-        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-          setValue("logoURL", url);
-          const data: UploadToFirebaseCompleted = {
-            logoCloudImagePath: company.logoCloudImagePath,
-            logoURL: url,
-          };
-          return data;
-        });
-      }
-    );
+  
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          // Calculer la progression en pourcentage
+          const uprogress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setStatusMessage(`Upload du logo ${uprogress.toFixed(2)}% terminée`);
+          setProgress(uprogress / 2);
+        },
+        (error) => {
+          // Gérer les erreurs ici
+          console.error("Error uploading image: ", error);
+          setStatusMessage("Upload failed!");
+          setIsOperationInProgress(false);
+          reject(error);
+        },
+        () => {
+          // Upload réussi
+          getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+            setIsOperationInProgress(false);
+            setStatusMessage("Upload du logo terminée");
+            setValue("logoURL", url);
+  
+            const data: UploadToFirebaseCompleted = {
+              logoCloudImagePath: company.logoCloudImagePath,
+              logoURL: url,
+            };
+            resolve(data);
+          }).catch((error) => {
+            setIsOperationInProgress(false);
+            reject(error);
+          });
+        }
+      );
+    });
   };
-
+  
   const onUpdate = async (data: CompanyUpdatable) => {
     try {
+      let logoData: UploadToFirebaseCompleted = {
+        logoCloudImagePath: company.logoCloudImagePath,
+        logoURL: company.logoURL,
+      };
+  
       if (data.logoURL !== company.logoURL) {
-        await uploadToFirebase(data.logoURL);
+        // Attendre que l'upload soit terminé et récupérer les informations
+        logoData = await uploadToFirebase(data.logoURL);
       }
-
+  
       const updateFormatedData: IUpdateCompanyRequest = {
         id: data._id,
-        updateData: data,
+        updateData: {
+          ...data,
+          logoCloudImagePath: logoData.logoCloudImagePath,
+          logoURL: logoData.logoURL,
+        },
       };
-
+  
       dispatch(companyActions.updateCompanyRequest(updateFormatedData));
     } catch (error) {
       console.error(error);
-
-      showAlert(`Echec de mis à jour ${error}`, company.name);
+      showAlert(`Echec de mise à jour ${error}`, company.name);
     }
   };
-
+  
   return (
     <View
       style={{
